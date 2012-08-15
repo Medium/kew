@@ -134,24 +134,30 @@ function all(promises) {
   var promise = new Promise()
   var counter = promises.length
 
+  var onSuccess = function () {
+    function () {
+      counter--
+      if (!finished && counter === 0) {
+        finished = true
+        promise.resolve(outputs)
+      }
+    }
+  }
+
+  var onFail = function (e) {
+    if (!finished) {
+      finished = true
+      promise.reject(e)
+    }
+  }
+
   for (var i = 0; i < promises.length; i += 1) {
     if (!promises[i] || !promises[i]._isPromise) {
       outputs[i] = promises[i]
       counter -= 1
     } else {
       promises[i].then(replaceEl.bind(null, outputs, i))
-      .then(function () {
-        counter--
-        if (!finished && counter === 0) {
-          finished = true
-          promise.resolve(outputs)
-        }
-      }, function (e) {
-        if (!finished) {
-          finished = true
-          promise.reject(e)
-        }
-      })
+      .then(onSuccess, onFail)
     }
   }
 
