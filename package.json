@@ -1,0 +1,26 @@
+{
+    "name": "kew"
+  , "description": "kew?"
+  , "version": "0.0.4"
+  , "homepage": "https://github.com/Obvious/kew"
+  , "authors": [
+      "Jeremy Stanley <github@azulus.com> (https://github.com/azulus)"
+    ]
+  , "contributors": [
+
+    ]
+  , "keywords": ["kew", "promises"]
+  , "main": "./kew.js"
+  , "repository": {
+        "type": "git"
+      , "url": "https://github.com/Obvious/kew.git"
+    }
+  , "dependencies": {
+    }
+  , "devDependencies": {
+        "nodeunit": "*"
+      , "jasmine-node": "*"
+    }
+  , "scripts": {
+  }
+}
