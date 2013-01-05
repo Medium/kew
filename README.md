@@ -224,7 +224,7 @@ Contributing
 ------------
 
 Questions, comments, bug reports, and pull requests are all welcome.
-Submit them at [the project on GitHub](https://github.com/Obvious/asyncBuilder/).
+Submit them at [the project on GitHub](https://github.com/Obvious/kew/).
 
 Bug reports that include steps-to-reproduce (including code) are the
 best. Even better, make them in the form of pull requests that update
@@ -245,5 +245,5 @@ License
 Copyright 2013 [The Obvious Corporation](http://obvious.com/).
 
 Licensed under the Apache License, Version 2.0.
-See the top-level file `LICENSE.txt` and
+See the top-level file `LICENSE.TXT` and
 (http://www.apache.org/licenses/LICENSE-2.0).
