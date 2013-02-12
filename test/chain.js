@@ -199,6 +199,25 @@ exports.testChainedFails = function (test) {
   })
 }
 
+// test that we can call end without callbacks and not fail
+exports.testEndNoCallbacks = function (test) {
+  Q.resolve(true).end()
+  test.ok("Ended successfully")
+  test.done()
+}
+
+// test that we can call end with callbacks and fail
+exports.testEndNoCallbacksThrows = function (test) {
+  var testError = new Error('Testing')
+  try {
+    Q.reject(testError).end()
+    test.fail("Should throw an error")
+  } catch (e) {
+    test.equal(e, testError, "Should throw the correct error")
+  }
+  test.done()
+}
+
 // test chaining when a promise returns a promise
 exports.testChainedPromises = function (test) {
   var err = new Error('nope')
