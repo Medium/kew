@@ -275,6 +275,9 @@ function replaceEl(arr, idx, val) {
  * @return {Promise.<Array.<Object>>}
  */
 function all(promises) {
+  if (arguments.length != 1 || !Array.isArray(promises)) {
+    promises = Array.prototype.slice.call(arguments, 0)
+  }
   if (!promises.length) return resolve([])
 
   var outputs = []
@@ -321,9 +324,58 @@ function defer() {
   return new Promise()
 }
 
+/**
+ * Return a promise which will wait a specified number of ms to resolve
+ *
+ * @param {number} delayMs
+ * @param {Object} returnVal
+ * @return {Promise.<Object>} returns returnVal
+ */
+function delay(delayMs, returnVal) {
+  var defer = new Promise()
+  setTimeout(function () {
+    defer.resolve(returnVal)
+  }, delayMs)
+  return defer
+}
+
+/**
+ * Return a promise which will evaluate the function fn with the provided args
+ *
+ * @param {function} fn
+ * @param {Object} var_args a variable number of arguments
+ * @return {Promise}
+ */
+function fcall(fn, var_args) {
+  var defer = new Promise()
+  defer.resolve(fn.apply(null, Array.prototype.slice.call(arguments, 1)))
+  return defer
+}
+
+/**
+ * Binds a function to a scope with an optional number of curried arguments. Attaches
+ * a node style callback as the last argument and returns a promise
+ *
+ * @param {function} fn
+ * @param {Object} scope
+ * @param {Object} var_args a variable number of arguments
+ * @return {Promise}
+ */
+function bindPromise(fn, scope, var_args) {
+  var rootArgs = Array.prototype.slice.call(arguments, 2)
+  return function (var_args) {
+    var defer = new Promise()
+    fn.apply(scope, rootArgs.concat(Array.prototype.slice.call(arguments, 0), defer.makeNodeResolver()))
+    return defer
+  }
+}
+
 module.exports = {
-    resolve: resolve
-  , reject: reject
-  , all: all
+    all: all
+  , bindPromise: bindPromise
   , defer: defer
+  , delay: delay
+  , fcall: fcall
+  , resolve: resolve
+  , reject: reject
 }

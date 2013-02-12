@@ -120,3 +120,68 @@ exports.testQAllError = function (test) {
       test.done()
     })
 }
+
+// test all var_args
+exports.testAllVarArgs = function (test) {
+  var promises = ['a', 'b']
+
+  Q.all.apply(Q, promises)
+    .then(function (results) {
+      test.equal(promises[0], results[0], "First element should be returned")
+      test.equal(promises[1], results[1], "Second element should be returned")
+      test.done()
+    })
+}
+
+// test all array
+exports.testAllArray = function (test) {
+  var promises = ['a', 'b']
+
+  Q.all(promises)
+    .then(function (results) {
+      test.equal(promises[0], results[0], "First element should be returned")
+      test.equal(promises[1], results[1], "Second element should be returned")
+      test.done()
+    })
+}
+
+// test delay
+exports.testDelay = function (test) {
+  var val = "Hello, there"
+  var startTime = Date.now()
+
+  Q.resolve(val)
+    .then(Q.delay.bind(Q, 1000))
+    .then(function (returnVal) {
+      test.equal(returnVal, val, "Val should be passed through")
+      test.equal(Date.now() - startTime >= 1000, true, "Should have waited a second")
+      test.done()
+    })
+}
+
+// test fcall
+exports.testFcall = function (test) {
+  var adder = function (a, b) {
+    return a + b
+  }
+
+  Q.fcall(adder, 2, 3)
+    .then(function (val) {
+      test.equal(val, 5, "Val should be 2 + 3")
+      test.done()
+    })
+}
+
+// test binding a callback function with a promise
+exports.testBindPromise = function (test) {
+  var adder = function (a, b, callback) {
+    callback(null, a + b)
+  }
+
+  var boundAdder = Q.bindPromise(adder, null, 2)
+  boundAdder(3)
+    .then(function (val) {
+      test.equal(val, 5, "Val should be 2 + 3")
+      test.done()
+    })
+}
