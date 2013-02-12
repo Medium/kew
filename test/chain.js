@@ -1,43 +1,5 @@
 var Q = require('../kew')
 
-// test all var_args
-exports.testAllVarArgs = function (test) {
-  var promises = ['a', 'b']
-
-  Q.all.apply(Q, promises)
-    .then(function (results) {
-      test.equal(promises[0], results[0], "First element should be returned")
-      test.equal(promises[1], results[1], "Second element should be returned")
-      test.done()
-    })
-}
-
-// test all array
-exports.testAllArray = function (test) {
-  var promises = ['a', 'b']
-
-  Q.all(promises)
-    .then(function (results) {
-      test.equal(promises[0], results[0], "First element should be returned")
-      test.equal(promises[1], results[1], "Second element should be returned")
-      test.done()
-    })
-}
-
-// test delay
-exports.testDelay = function (test) {
-  var val = "Hello, there"
-  var startTime = Date.now()
-
-  Q.resolve(val)
-    .then(Q.delay.bind(Q, 1000))
-    .then(function (returnVal) {
-      test.equal(returnVal, val, "Val should be passed through")
-      test.equal(Date.now() - startTime >= 1000, true, "Should have waited a second")
-      test.done()
-    })
-}
-
 // test that fin() works with a synchronous resolve
 exports.testSynchronousThenAndFin = function (test) {
   var vals = ['a', 'b']

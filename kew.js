@@ -339,10 +339,43 @@ function delay(delayMs, returnVal) {
   return defer
 }
 
+/**
+ * Return a promise which will evaluate the function fn with the provided args
+ *
+ * @param {function} fn
+ * @param {Object} var_args a variable number of arguments
+ * @return {Promise}
+ */
+function fcall(fn, var_args) {
+  var defer = new Promise()
+  defer.resolve(fn.apply(null, Array.prototype.slice.call(arguments, 1)))
+  return defer
+}
+
+/**
+ * Binds a function to a scope with an optional number of curried arguments. Attaches
+ * a node style callback as the last argument and returns a promise
+ *
+ * @param {function} fn
+ * @param {Object} scope
+ * @param {Object} var_args a variable number of arguments
+ * @return {Promise}
+ */
+function bindPromise(fn, scope, var_args) {
+  var rootArgs = Array.prototype.slice.call(arguments, 2)
+  return function (var_args) {
+    var defer = new Promise()
+    fn.apply(scope, rootArgs.concat(Array.prototype.slice.call(arguments, 0), defer.makeNodeResolver()))
+    return defer
+  }
+}
+
 module.exports = {
-    resolve: resolve
-  , reject: reject
-  , all: all
+    all: all
+  , bindPromise: bindPromise
   , defer: defer
   , delay: delay
+  , fcall: fcall
+  , resolve: resolve
+  , reject: reject
 }
