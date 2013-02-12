@@ -275,6 +275,9 @@ function replaceEl(arr, idx, val) {
  * @return {Promise.<Array.<Object>>}
  */
 function all(promises) {
+  if (arguments.length != 1 || !Array.isArray(promises)) {
+    promises = Array.prototype.slice.call(arguments, 0)
+  }
   if (!promises.length) return resolve([])
 
   var outputs = []
@@ -321,9 +324,25 @@ function defer() {
   return new Promise()
 }
 
+/**
+ * Return a promise which will wait a specified number of ms to resolve
+ *
+ * @param {number} delayMs
+ * @param {Object} returnVal
+ * @return {Promise.<Object>} returns returnVal
+ */
+function delay(delayMs, returnVal) {
+  var defer = new Promise()
+  setTimeout(function () {
+    defer.resolve(returnVal)
+  }, delayMs)
+  return defer
+}
+
 module.exports = {
     resolve: resolve
   , reject: reject
   , all: all
   , defer: defer
+  , delay: delay
 }
