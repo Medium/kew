@@ -335,3 +335,36 @@ exports.testChainedMixed = function (test) {
     test.done()
   })
 }
+
+// test that contexts work
+exports.testContext = function (test) {
+  var matches = 0
+  var originalContext = {name: "Jeremy"}
+
+  Q.resolve("hello")
+    .setContext(originalContext)
+    .then(function (val, context) {
+      test.equal(context, originalContext, "Context matches")
+      matches++
+      throw new Error("now to fail")
+    })
+    .fail(function (e, context) {
+      test.equal(context, originalContext, "Context matches")
+      matches++
+      return Q.all([Q.resolve("a"), Q.resolve("b")])
+    })
+    .then(function (vals, context) {
+      test.equal(context, originalContext, "Context matches")
+      matches++
+      return Q.all([Q.resolve("a"), Q.reject(new Error("no"))])
+    })
+    .fail(function (e, context) {
+      test.equal(context, originalContext, "Context matches")
+      matches++
+      return Q.all([Q.resolve("a"), Q.resolve("b")])
+    })
+    .fin(function () {
+      test.equal(matches, 4, "Should have matched the context 4 times")
+      test.done()
+    })
+}

@@ -12,6 +12,12 @@ function Promise(onSuccess, onFail) {
   this._isPromise = true
   this._successFn = onSuccess
   this._failFn = onFail
+  this._context = undefined
+}
+
+Promise.prototype.setContext = function (context) {
+  this._context = context
+  return this
 }
 
 /**
@@ -101,6 +107,7 @@ Promise.prototype.reject = function (e) {
  */
 Promise.prototype.then = function (onSuccess, onFail) {
   var promise = new Promise(onSuccess, onFail)
+  if (this._context) promise.setContext(this._context)
 
   if (this._child) this._child._chainPromise(promise)
   else this._chainPromise(promise)
@@ -163,7 +170,7 @@ Promise.prototype.end = function () {
 Promise.prototype._withInput = function (data) {
   if (this._successFn) {
     try {
-      this.resolve(this._successFn(data))
+      this.resolve(this._successFn(data, this._context))
     } catch (e) {
       this.reject(e)
     }
@@ -178,7 +185,7 @@ Promise.prototype._withInput = function (data) {
 Promise.prototype._withError = function (e) {
   if (this._failFn) {
     try {
-      this.resolve(this._failFn(e))
+      this.resolve(this._failFn(e, this._context))
     } catch (e) {
       this.reject(e)
     }
