@@ -1,5 +1,18 @@
 (function() {
 
+  //
+  // Browser compatibility and exports
+  //
+  var nextTick;
+  if (typeof process !== 'undefined' && process.nextTick) {
+    nextTick = process.nextTick;
+  } else {
+    // Could alternatively just be nextTick = setTimeout, but relying
+    // on the missing delay arg being treated as a 0 is undefined behaviour.
+    nextTick = function(fn) { setTimeout(fn, 0) };
+  }
+
+
   /**
    * An object representing a "promise" for a future value
    *
@@ -72,7 +85,7 @@
     this._error = e
 
     if (this._ended) {
-      process.nextTick(function () {
+      nextTick(function () {
         throw e
       })
     }
