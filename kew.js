@@ -137,18 +137,12 @@
    *     onFail handler
    */
   Promise.prototype.then = function (onSuccess, onFail) {
-    var promise
-
-    if (onSuccess)
-      promise = new Promise(onSuccess)
-    else
-      promise = new Promise(null, onFail)
+    var promise = new Promise(onSuccess, onFail)
 
     if (this._child) this._child._chainPromise(promise)
     else this._chainPromise(promise)
 
-    if (onSuccess && onFail) return promise.fail(onFail)
-    else return promise
+    return promise
   }
 
   /**
@@ -208,7 +202,7 @@
       try {
         this.resolve(this._successFn(data))
       } catch (e) {
-        this.reject(e)
+        this._withError(e)
       }
     } else this.resolve(data)
   }
@@ -219,8 +213,15 @@
    * @param {Error} e
    */
   Promise.prototype._withError = function (e) {
-    if (this._failFn) this._failFn(e)
-    this.reject(e)
+    var data
+    if (this._failFn)
+      data = this._failFn(e)
+    if (data && data._isPromise) {
+      if (this._successFn)
+        data = data.then(this._successFn)
+      this.resolve(data)
+    }
+    else this.reject(e)
   }
 
   /**
