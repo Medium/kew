@@ -25,13 +25,18 @@
     return this._hasData
   }
 
+  Promise.prototype.whenResolved = function (f) {
+    if (this.isResolved())
+      return f(this.deref())
+  }
+
   /**
    * See if this promise has been resolved either with data or an error
    *
    * @return {Boolean}
    */
   Promise.prototype.isComplete = function () {
-    return (this._hasData || this._error)
+    return this._hasData || this._error
   }
 
   /**
