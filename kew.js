@@ -132,12 +132,18 @@
    *     onFail handler
    */
   Promise.prototype.then = function (onSuccess, onFail) {
-    var promise = new Promise(onSuccess, onFail)
+    var promise
+
+    if (onSuccess)
+      promise = new Promise(onSuccess)
+    else
+      promise = new Promise(null, onFail)
 
     if (this._child) this._child._chainPromise(promise)
     else this._chainPromise(promise)
 
-    return promise
+    if (onSuccess && onFail) return promise.fail(onFail)
+    else return promise
   }
 
   /**
