@@ -59,7 +59,7 @@
   Promise.prototype.resolve = function (data) {
     if (this.isComplete()) throw new Error("Unable to resolve or reject the same promise twice")
 
-    var i
+    var i, _this = this
     if (data && data._isPromise) {
       this._child = data
       if (this._promises) {
@@ -75,6 +75,10 @@
         }
         delete this._onComplete
       }
+
+      data.then(function(v) { _this._hasData = true;  _this._data = v;    _this._error = null; return v },
+                function(e) { _this._hasData = false; _this._data = null; _this._error = e });
+
       return
     }
 
@@ -213,7 +217,7 @@
    * @param {Error} e
    */
   Promise.prototype._withError = function (e) {
-    var data
+    var data;
     if (this._failFn)
       data = this._failFn(e)
     if (data && data._isPromise) {
