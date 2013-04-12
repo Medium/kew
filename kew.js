@@ -209,18 +209,13 @@
   }
 
   /**
-   * Attempt to reject this promise with the specified error
+   * Reject this promise with the specified error
    *
    * @param {Error} e
    */
   Promise.prototype._withError = function (e) {
-    if (this._failFn) {
-      try {
-        this.resolve(this._failFn(e))
-      } catch (e) {
-        this.reject(e)
-      }
-    } else this.reject(e)
+    if (this._failFn) this._failFn(e)
+    this.reject(e)
   }
 
   /**
