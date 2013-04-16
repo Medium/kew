@@ -1,5 +1,28 @@
 var Q = require('../kew')
 
+// test that contexts are propogated based on position
+exports.testContextWithDelay = function (test) {
+
+	Q.resolve(true)
+	  .setContext({id: 1})
+	  .then(function (val, context) {
+	  	test.equal(context.id, 1, 'Should return the first context')
+	  	return Q.delay(500)
+	  })
+	  .setContext({id: 2})
+	  .then(function (val, context) {
+	  	test.equal(context.id, 2, 'Should return the second context')
+	  	return Q.delay(500)
+	  })
+	  .clearContext()
+	  .then(function (val, context) {
+	  	test.equal(typeof context, 'undefined', 'Should return an undefined context')
+	  	return Q.delay(500)
+	  })
+	  .setContext({id: 3})
+	  .fin(test.done)
+}
+
 // test adding and removing contexts
 exports.testGeneralContextFlow = function (test) {
 	Q.resolve(true)
