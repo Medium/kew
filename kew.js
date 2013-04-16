@@ -17,6 +17,10 @@ function Promise(onSuccess, onFail) {
   this._currentContext = undefined
 }
 
+/**
+ * Specify that the current promise should have a specified context
+ * @param  {Object} context context
+ */
 Promise.prototype._useContext = function (context) {
   this._nextContext = this._currentContext = context
   this._hasContext = true
@@ -30,7 +34,7 @@ Promise.prototype.clearContext = function () {
 }
 
 /**
- * Set the context for a promise
+ * Set the context for all promise handlers to follow
  * @param {context} context An arbitrary context
  */
 Promise.prototype.setContext = function (context) {
