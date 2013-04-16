@@ -13,21 +13,32 @@ function Promise(onSuccess, onFail) {
   this._successFn = onSuccess
   this._failFn = onFail
   this._hasContext = false
-  this._context = undefined
+  this._nextContext = undefined
+  this._currentContext = undefined
+}
+
+/**
+ * Specify that the current promise should have a specified context
+ * @param  {Object} context context
+ */
+Promise.prototype._useContext = function (context) {
+  this._nextContext = this._currentContext = context
+  this._hasContext = true
+  return this
 }
 
 Promise.prototype.clearContext = function () {
   this._hasContext = false
-  this._context = undefined
+  this._nextContext = undefined
   return this
 }
 
 /**
- * Set the context for a promise
+ * Set the context for all promise handlers to follow
  * @param {context} context An arbitrary context
  */
 Promise.prototype.setContext = function (context) {
-  this._context = context
+  this._nextContext = context
   this._hasContext = true
   return this
 }
@@ -37,7 +48,7 @@ Promise.prototype.setContext = function (context) {
  * @return {Object} the context set by setContext
  */
 Promise.prototype.getContext = function () {
-  return this._context
+  return this._nextContext
 }
 
 /**
@@ -127,7 +138,7 @@ Promise.prototype.reject = function (e) {
  */
 Promise.prototype.then = function (onSuccess, onFail) {
   var promise = new Promise(onSuccess, onFail)
-  if (this._context) promise.setContext(this._context)
+  if (this._nextContext) promise._useContext(this._nextContext)
 
   if (this._child) this._child._chainPromise(promise)
   else this._chainPromise(promise)
@@ -190,7 +201,7 @@ Promise.prototype.end = function () {
 Promise.prototype._withInput = function (data) {
   if (this._successFn) {
     try {
-      this.resolve(this._successFn(data, this._context))
+      this.resolve(this._successFn(data, this._currentContext))
     } catch (e) {
       this.reject(e)
     }
@@ -205,7 +216,7 @@ Promise.prototype._withInput = function (data) {
 Promise.prototype._withError = function (e) {
   if (this._failFn) {
     try {
-      this.resolve(this._failFn(e, this._context))
+      this.resolve(this._failFn(e, this._currentContext))
     } catch (e) {
       this.reject(e)
     }
