@@ -182,7 +182,35 @@ exports.testChainedFails = function (test) {
 
   Q.all([promise1, promise2, promise3, promise4])
   .fail(function (data) {
-    console.log("results", promise1.deref(), promise2.deref(), promise3.deref(), promise4.deref())
+    test.equal(promise1.deref(), errs[0]);
+    test.equal(promise2.deref(), 1);
+    test.equal(promise3.deref(), 2);
+    test.equal(promise4.deref(), 3);
+    test.done()
+  })
+}
+
+// test several fails chaining
+exports.testChainedFailRecoveries = function (test) {
+  var errs = []
+  errs.push(new Error("first err"))
+  errs.push(new Error("second err"))
+  errs.push(new Error("third err"))
+
+  var promise1 = Q.reject(errs[0])
+  var promise2 = promise1.fail(function (e) {
+    return Q.resolve(1)
+  })
+  var promise3 = promise2.then(function (d) {
+    return d + 1;
+  })
+  var promise4 = promise2.then(function (d) {
+    return d + 2;
+  })
+
+  Q.all([promise2, promise3, promise4])
+  .fail(function (data) {
+    console.log('data', data)
     test.equal(promise1.deref(), errs[0]);
     test.equal(promise2.deref(), 1);
     test.equal(promise3.deref(), 2);
