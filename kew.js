@@ -230,7 +230,7 @@ Promise.prototype._withError = function (e) {
  */
 Promise.prototype._chainPromise = function (promise) {
   var i
-  if (this._hasContext) promise.setContext(this.context)
+  if (this._hasContext) promise.setContext(this._nextContext)
 
   if (this._child) {
     this._child._chainPromise(promise)
