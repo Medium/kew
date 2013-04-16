@@ -30,12 +30,47 @@
   }
 
   /**
+   * See if this promise has been resolved with data
+   *
+   * @return {Boolean}
+   */
+  Promise.prototype.isResolved = function () {
+    return this._hasData
+  }
+
+  Promise.prototype.whenResolved = function (f) {
+    if (this.isResolved())
+      return f(this.deref())
+  }
+
+  /**
+   * See if this promise has been resolved either with data or an error
+   *
+   * @return {Boolean}
+   */
+  Promise.prototype.isComplete = function () {
+    return this._hasData || this._error
+  }
+
+  /**
+   * Get the value or error from this promise
+   *
+   * @return {Object} data
+   */
+  Promise.prototype.deref = function () {
+    if (this._hasData)
+      return this._data
+    else if (this._error)
+      return this._error
+  }
+
+  /**
    * Resolve this promise with a specified value
    *
    * @param {Object} data
    */
   Promise.prototype.resolve = function (data) {
-    if (this._error || this._hasData) throw new Error("Unable to resolve or reject the same promise twice")
+    if (this.isComplete()) throw new Error("Unable to resolve or reject the same promise twice")
 
     var i
     if (data && data._isPromise) {
@@ -79,7 +114,7 @@
    * @param {Error} e
    */
   Promise.prototype.reject = function (e) {
-    if (this._error || this._hasData) throw new Error("Unable to resolve or reject the same promise twice")
+    if (this.isComplete()) throw new Error("Unable to resolve or reject the same promise twice")
 
     var i
     this._error = e
@@ -141,7 +176,7 @@
    * @return {Promise} returns the current promise
    */
   Promise.prototype.fin = function (onComplete) {
-    if (this._hasData || this._error) {
+    if (this.isComplete()) {
       onComplete()
       return this
     }
@@ -180,24 +215,26 @@
       try {
         this.resolve(this._successFn(data))
       } catch (e) {
-        this.reject(e)
+        this._withError(e)
       }
     } else this.resolve(data)
   }
 
   /**
-   * Attempt to reject this promise with the specified error
+   * Reject this promise with the specified error
    *
    * @param {Error} e
    */
   Promise.prototype._withError = function (e) {
-    if (this._failFn) {
-      try {
-        this.resolve(this._failFn(e))
-      } catch (e) {
-        this.reject(e)
-      }
-    } else this.reject(e)
+    var data
+    if (this._failFn)
+      data = this._failFn(e)
+    if (data && data._isPromise) {
+      if (this._successFn)
+        data = data.then(this._successFn)
+      this.resolve(data)
+    }
+    else this.reject(e)
   }
 
   /**
