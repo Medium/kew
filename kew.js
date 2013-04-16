@@ -12,7 +12,14 @@ function Promise(onSuccess, onFail) {
   this._isPromise = true
   this._successFn = onSuccess
   this._failFn = onFail
+  this._hasContext = false
   this._context = undefined
+}
+
+Promise.prototype.clearContext = function () {
+  this._hasContext = false
+  this._context = undefined
+  return this
 }
 
 /**
@@ -21,6 +28,7 @@ function Promise(onSuccess, onFail) {
  */
 Promise.prototype.setContext = function (context) {
   this._context = context
+  this._hasContext = true
   return this
 }
 
@@ -211,6 +219,7 @@ Promise.prototype._withError = function (e) {
  */
 Promise.prototype._chainPromise = function (promise) {
   var i
+  if (this._hasContext) promise.setContext(this.context)
 
   if (this._child) {
     this._child._chainPromise(promise)
