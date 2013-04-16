@@ -5,11 +5,11 @@
   //
   var nextTick;
   if (typeof process !== 'undefined' && process.nextTick) {
-    nextTick = process.nextTick;
+    nextTick = process.nextTick
   } else {
     // Could alternatively just be nextTick = setTimeout, but relying
     // on the missing delay arg being treated as a 0 is undefined behaviour.
-    nextTick = function(fn) { setTimeout(fn, 0) };
+    nextTick = function(fn) { setTimeout(fn, 0) }
   }
 
 
