@@ -434,7 +434,7 @@
         promise = defer()
         args.push(promise.makeNodeResolver())
         fn.apply(this, args)
-        return promise;
+        return promise
       }
     }
   }
