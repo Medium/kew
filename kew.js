@@ -422,6 +422,24 @@
     }
   }
 
+  /**
+   * The magic method is for magicians only.
+   */
+  function magic(fn) {
+    return function() {
+      var args = arguments.length ? Array.prototype.slice.call(arguments, 0) : []
+      if (typeof args[args.count - 1] === 'function') {
+
+        return fn.apply(this, args)
+      } else {
+        promise = defer()
+        args.push(promise.makeNodeResolver())
+        fn.apply(this, args)
+        return promise;
+      }
+    }
+  }
+
   // Establish the root object, `window` in the browser, or `global` on the server.
   var root = this;
   var fnExports = {
@@ -432,6 +450,7 @@
     , fcall: fcall
     , resolve: resolve
     , reject: reject
+    , magic: magic
   }
 
   // Export the kew functions for **Node.js**, with
