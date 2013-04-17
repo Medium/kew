@@ -429,7 +429,6 @@
     return function() {
       var args = arguments.length ? Array.prototype.slice.call(arguments, 0) : []
       if (typeof args[args.count - 1] === 'function') {
-
         return fn.apply(this, args)
       } else {
         promise = defer()
