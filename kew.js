@@ -206,6 +206,9 @@ Promise.prototype._withInput = function (data) {
       this.reject(e)
     }
   } else this.resolve(data)
+
+  // context is no longer needed
+  delete this._currentContext
 }
 
 /**
@@ -221,6 +224,9 @@ Promise.prototype._withError = function (e) {
       this.reject(e)
     }
   } else this.reject(e)
+
+  // context is no longer needed
+  delete this._currentContext
 }
 
 /**
@@ -230,7 +236,7 @@ Promise.prototype._withError = function (e) {
  */
 Promise.prototype._chainPromise = function (promise) {
   var i
-  if (this._hasContext) promise.setContext(this._nextContext)
+  if (this._hasContext) promise._useContext(this._nextContext)
 
   if (this._child) {
     this._child._chainPromise(promise)
