@@ -70,48 +70,61 @@
    * @param {Object} data
    */
   Promise.prototype.resolve = function (data) {
-    if (this.isComplete()) throw new Error("Unable to resolve or reject the same promise twice")
+    if (this.isComplete())
+      throw new Error("Unable to resolve or reject the same promise twice")
+    else if (data && data._isPromise)
+      this._resolveWithPromise(data);
+    else
+      this._resolveWithValue(data)
+  }
 
-    var i, _this = this
-    if (data && data._isPromise) {
-      this._child = data
+  /**
+   * "Resolves" this promise with another promise. The provided promise will inherit all of the receiving
+   * promise's child promises and completion handlers.
+   *
+   * Resolution of the child will bubble up to this promise.
+   */
+  Promise.prototype._resolveWithPromise = function (promise) {
+    var i, _this = this;
+    this._child = promise;
 
-      // Resolve this promise if the child becomes resolved
-      data.then(function(v) { _this._hasData = true;  _this._data = v;    _this._error = null; return v },
-                function(e) { _this._hasData = false; _this._data = null; _this._error = e });
+    // Add a then handler to resolve this promise if the child becomes resolved
+    promise.then(function(v) { _this._hasData = true;  _this._data = v;    _this._error = null; return v },
+              function(e) { _this._hasData = false; _this._data = null; _this._error = e });
 
-      if (this._promises) {
-        for (var i = 0; i < this._promises.length; i += 1) {
-          data._chainPromise(this._promises[i])
-        }
-        delete this._promises
+    if (this._promises) {
+      for (var i = 0; i < this._promises.length; i += 1) {
+        promise._chainPromise(this._promises[i]);
       }
-
-      if (this._onComplete) {
-        for (var i = 0; i < this._onComplete.length; i+= 1) {
-          data.fin(this._onComplete[i])
-        }
-        delete this._onComplete
-      }
-
-
-      return
+      delete this._promises;
     }
 
-    this._hasData = true
-    this._data = data
+    if (this._onComplete) {
+      for (var i = 0; i < this._onComplete.length; i+= 1) {
+        promise.fin(this._onComplete[i]);
+      }
+      delete this._onComplete;
+    }
+  }
+
+  /**
+   * Resolves this promise with a fulfilled value (not a promise).
+   */
+  Promise.prototype._resolveWithValue = function (value) {
+    this._hasData = true;
+    this._data = value;
 
     if (this._onComplete) {
       for (i = 0; i < this._onComplete.length; i++) {
-        this._onComplete[i]()
+        this._onComplete[i]();
       }
     }
 
     if (this._promises) {
       for (i = 0; i < this._promises.length; i += 1) {
-        this._promises[i]._withInput(data)
+        this._promises[i]._withInput(value);
       }
-      delete this._promises
+      delete this._promises;
     }
   }
 
