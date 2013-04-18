@@ -75,6 +75,11 @@
     var i, _this = this
     if (data && data._isPromise) {
       this._child = data
+
+      // Resolve this promise if the child becomes resolved
+      data.then(function(v) { _this._hasData = true;  _this._data = v;    _this._error = null; return v },
+                function(e) { _this._hasData = false; _this._data = null; _this._error = e });
+
       if (this._promises) {
         for (var i = 0; i < this._promises.length; i += 1) {
           data._chainPromise(this._promises[i])
@@ -89,8 +94,6 @@
         delete this._onComplete
       }
 
-      data.then(function(v) { _this._hasData = true;  _this._data = v;    _this._error = null; return v },
-                function(e) { _this._hasData = false; _this._data = null; _this._error = e });
 
       return
     }
