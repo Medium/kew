@@ -1,5 +1,18 @@
 (function() {
 
+  //
+  // Browser compatibility and exports
+  //
+  var nextTick;
+  if (typeof process !== 'undefined' && process.nextTick) {
+    nextTick = process.nextTick
+  } else {
+    // Could alternatively just be nextTick = setTimeout, but relying
+    // on the missing delay arg being treated as a 0 is undefined behaviour.
+    nextTick = function(fn) { setTimeout(fn, 0) }
+  }
+
+
   /**
    * An object representing a "promise" for a future value
    *
@@ -111,7 +124,7 @@
     this._error = e
 
     if (this._ended) {
-      process.nextTick(function () {
+      nextTick(function () {
         throw e
       })
     }
@@ -413,6 +426,23 @@
     }
   }
 
+  /**
+   * The magic method is for magicians only.
+   */
+  function magic(fn) {
+    return function() {
+      var args = arguments.length ? Array.prototype.slice.call(arguments, 0) : []
+      if (typeof args[args.count - 1] === 'function') {
+        return fn.apply(this, args)
+      } else {
+        promise = defer()
+        args.push(promise.makeNodeResolver())
+        fn.apply(this, args)
+        return promise
+      }
+    }
+  }
+
   // Establish the root object, `window` in the browser, or `global` on the server.
   var root = this;
   var fnExports = {
@@ -423,6 +453,7 @@
     , fcall: fcall
     , resolve: resolve
     , reject: reject
+    , magic: magic
   }
 
   // Export the kew functions for **Node.js**, with
