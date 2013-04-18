@@ -190,7 +190,7 @@ exports.testChainedFails = function (test) {
   })
 }
 
-// test several fails chaining
+// test a fail and recovery
 exports.testChainedFailRecoveries = function (test) {
   var errs = []
   errs.push(new Error("first err"))
@@ -209,12 +209,40 @@ exports.testChainedFailRecoveries = function (test) {
   })
 
   Q.all([promise2, promise3, promise4])
-  .fail(function (data) {
-    console.log('data', data)
+  .then(function (data) {
     test.equal(promise1.deref(), errs[0]);
     test.equal(promise2.deref(), 1);
     test.equal(promise3.deref(), 2);
     test.equal(promise4.deref(), 3);
+    test.done()
+  })
+}
+
+// test a chain of fail action
+exports.testChainedFails = function (test) {
+  var err = new Error("first err"),
+      action = [];
+
+
+  var promise1 = Q.reject(err)
+  var promise2 = promise1.fail(function (e) {
+    action.push(1)
+  })
+  var promise3 = promise2.fail(function (d) {
+    action.push(2)
+  })
+  var promise4 = promise2.fail(function (d) {
+    action.push(3)
+  })
+
+  Q.all([promise2, promise3, promise4])
+  .fail(function (data) {
+    test.equal(promise1.deref(), err);
+    test.equal(promise2.deref(), err);
+    test.equal(promise3.deref(), err);
+    test.equal(promise4.deref(), err);
+    test.equal(data, err);
+    test.deepEqual(action, [1,2,3]);
     test.done()
   })
 }
@@ -321,36 +349,36 @@ exports.testChainedMixed = function (test) {
 
   var promise1 = Q.reject(errs[0])
   var promise2 = promise1.fail(function (e) {
-    if (e === errs[0]) return vals[0]
+    if (e === errs[0]) return Q.resolve(vals[0])
   })
   var promise3 = promise2.then(function (data) {
     if (data === vals[0]) throw errs[1]
   })
   var promise4 = promise3.fail(function (e) {
-    if (e === errs[1]) return vals[1]
+    if (e === errs[1]) return Q.resolve(vals[1])
   })
   var promise5 = promise4.then(function (data) {
     if (data === vals[1]) throw errs[2]
   })
   var promise6 = promise5.fail(function (e) {
-    if (e === errs[2]) return vals[2]
+    if (e === errs[2]) return Q.resolve(vals[2])
   })
 
   Q.all([
     promise1.fail(function (e) {
-      return e === errs[0]
+      return Q.resolve(e === errs[0])
     }),
     promise2.then(function (data) {
       return data === vals[0]
     }),
     promise3.fail(function (e) {
-      return e === errs[1]
+      return Q.resolve(e === errs[1])
     }),
     promise4.then(function (data) {
       return data === vals[1]
     }),
     promise5.fail(function (e) {
-      return e === errs[2]
+      return Q.resolve(e === errs[2])
     }),
     promise6.then(function (data) {
       return data === vals[2]
