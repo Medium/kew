@@ -71,11 +71,11 @@
    */
   Promise.prototype.resolve = function (data) {
     if (this.isComplete())
-      throw new Error("Unable to resolve or reject the same promise twice")
+      throw new Error("Unable to resolve or reject the same promise twice");
     else if (data && data._isPromise)
       this._resolveWithPromise(data);
     else
-      this._resolveWithValue(data)
+      this._resolveWithValue(data);
   }
 
   /**
