@@ -90,7 +90,7 @@
 
     // Add a then handler to resolve this promise if the child becomes resolved
     promise.then(function(v) { _this._hasData = true;  _this._data = v;    _this._error = null; return v },
-              function(e) { _this._hasData = false; _this._data = null; _this._error = e });
+                 function(e) { _this._hasData = false; _this._data = null; _this._error = e });
 
     if (this._promises) {
       for (var i = 0; i < this._promises.length; i += 1) {
