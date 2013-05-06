@@ -107,7 +107,7 @@ Promise.prototype.reject = function (e) {
   this._error = e
 
   if (this._ended) {
-    process.nextTick(function () {
+    process.nextTick(function onPromiseThrow() {
       throw e
     })
   }
@@ -337,13 +337,13 @@ function all(promises) {
       counter -= 1
     } else {
       promises[i].then(replaceEl.bind(null, outputs, i))
-      .then(function () {
+      .then(function decrementAllCounter() {
         counter--
         if (!finished && counter === 0) {
           finished = true
           promise.resolve(outputs)
         }
-      }, function (e) {
+      }, function onAllError(e) {
         if (!finished) {
           finished = true
           promise.reject(e)
@@ -378,7 +378,7 @@ function defer() {
  */
 function delay(delayMs, returnVal) {
   var defer = new Promise()
-  setTimeout(function () {
+  setTimeout(function onDelay() {
     defer.resolve(returnVal)
   }, delayMs)
   return defer
@@ -408,7 +408,7 @@ function fcall(fn, var_args) {
  */
 function bindPromise(fn, scope, var_args) {
   var rootArgs = Array.prototype.slice.call(arguments, 2)
-  return function (var_args) {
+  return function onBoundPromise(var_args) {
     var defer = new Promise()
     fn.apply(scope, rootArgs.concat(Array.prototype.slice.call(arguments, 0), defer.makeNodeResolver()))
     return defer
