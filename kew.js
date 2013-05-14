@@ -250,7 +250,7 @@
     if (this._failFn)
       data = this._failFn(e)
     else
-      console.error(e)
+      console.error('Promise resolved with error', e)
 
     if (data && data._isPromise) {
       if (this._successFn)
