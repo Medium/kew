@@ -233,7 +233,11 @@
   Promise.prototype._withInput = function (data) {
     if (this._successFn) {
       try {
-        this.resolve(this._successFn(data))
+        if (data && data.__isArgs) {
+          this.resolve(this._successFn.apply(this, data))
+        } else {
+          this.resolve(this._successFn(data))
+        }
       } catch (e) {
         this._withError(e)
       }
@@ -290,6 +294,10 @@
    * @param {Object} data optional data
    */
   function resolver(deferred, err, data) {
+    if (arguments.length > 3) {
+      data = Array.prototype.slice.call(arguments, 2)
+      data.__isArgs = true
+    }
     if (err) deferred.reject(err)
     else deferred.resolve(data)
   }
@@ -415,7 +423,7 @@
   }
 
   /**
-   * Return a promise which will evaluate the function fn with the provided args
+   * Return a promise which will evaluate the function fn with the provided variable args
    *
    * @param {function} fn
    * @param {Object} var_args a variable number of arguments
