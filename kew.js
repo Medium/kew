@@ -290,7 +290,6 @@
    * @param {Object} data optional data
    */
   function resolver(deferred, err, data) {
-    console.log('resolver', arguments)
     if (err) deferred.reject(err)
     else deferred.resolve(data)
   }
