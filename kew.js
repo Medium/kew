@@ -250,7 +250,7 @@
     if (this._failFn)
       data = this._failFn(e)
     else
-      console.error('Promise resolved with error', e)
+      console.error('Promise resolved with error', e, e.stack)
 
     if (data && data._isPromise) {
       if (this._successFn)
@@ -290,6 +290,7 @@
    * @param {Object} data optional data
    */
   function resolver(deferred, err, data) {
+    console.log('resolver', arguments)
     if (err) deferred.reject(err)
     else deferred.resolve(data)
   }
@@ -454,7 +455,7 @@
       if (args.length && args[args.length - 1] === undefined) {
         args = args.slice(0, -1)
       }
-      if (typeof args[args.count - 1] === 'function') {
+      if (typeof args[args.length - 1] === 'function') {
         return fn.apply(this, args)
       } else {
         promise = defer()
