@@ -249,6 +249,9 @@
     var data;
     if (this._failFn)
       data = this._failFn(e)
+    else
+      console.error(e)
+
     if (data && data._isPromise) {
       if (this._successFn)
         data = data.then(this._successFn)
