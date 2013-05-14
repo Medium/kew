@@ -448,6 +448,9 @@
   function magic(fn) {
     return function() {
       var args = arguments.length ? Array.prototype.slice.call(arguments, 0) : []
+      if (args.length && args[args.length - 1] === undefined) {
+        args = args.slice(0, -1)
+      }
       if (typeof args[args.count - 1] === 'function') {
         return fn.apply(this, args)
       } else {
