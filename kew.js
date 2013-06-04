@@ -8,26 +8,27 @@
  * @constructor
  */
 function Promise(onSuccess, onFail) {
-  this.promise = this
-  this._isPromise = true
   this._successFn = onSuccess
   this._failFn = onFail
-  this._hasContext = false
-  this._nextContext = undefined
-  this._currentContext = undefined
 }
+
+Promise.prototype._isPromise = true
+
+Promise.prototype.__defineGetter__('promise', function() {
+  return this
+})
 
 /**
  * Specify that the current promise should have a specified context
  * @param  {Object} context context
  */
-Promise.prototype._useContext = function (context) {
-  this._nextContext = this._currentContext = context
-  this._hasContext = true
+function _useContext(promise, context) {
+  promise._nextContext = promise._currentContext = context
+  promise._hasContext = true
   return this
 }
 
-Promise.prototype.clearContext = function () {
+Promise.prototype['clearContext'] = function () {
   this._hasContext = false
   this._nextContext = undefined
   return this
@@ -37,7 +38,7 @@ Promise.prototype.clearContext = function () {
  * Set the context for all promise handlers to follow
  * @param {context} context An arbitrary context
  */
-Promise.prototype.setContext = function (context) {
+Promise.prototype['setContext'] = function (context) {
   this._nextContext = context
   this._hasContext = true
   return this
@@ -47,7 +48,7 @@ Promise.prototype.setContext = function (context) {
  * Get the context for a promise
  * @return {Object} the context set by setContext
  */
-Promise.prototype.getContext = function () {
+Promise.prototype['getContext'] = function () {
   return this._nextContext
 }
 
@@ -64,7 +65,7 @@ Promise.prototype.resolve = function (data) {
     this._child = data
     if (this._promises) {
       for (var i = 0; i < this._promises.length; i += 1) {
-        data._chainPromise(this._promises[i])
+        _chainPromise(data, this._promises[i])
       }
       delete this._promises
     }
@@ -89,7 +90,7 @@ Promise.prototype.resolve = function (data) {
 
   if (this._promises) {
     for (i = 0; i < this._promises.length; i += 1) {
-      this._promises[i]._withInput(data)
+      _withInput(this._promises[i], data)
     }
     delete this._promises
   }
@@ -120,7 +121,7 @@ Promise.prototype.reject = function (e) {
 
   if (this._promises) {
     for (i = 0; i < this._promises.length; i += 1) {
-      this._promises[i]._withError(e)
+      _withError(this._promises[i], e)
     }
     delete this._promises
   }
@@ -136,12 +137,12 @@ Promise.prototype.reject = function (e) {
  * @return {Promise} returns a new promise with the output of the onSuccess or
  *     onFail handler
  */
-Promise.prototype.then = function (onSuccess, onFail) {
+Promise.prototype['then'] = function (onSuccess, onFail) {
   var promise = new Promise(onSuccess, onFail)
-  if (this._nextContext) promise._useContext(this._nextContext)
+  if (this._nextContext) _useContext(promise, this._nextContext)
 
-  if (this._child) this._child._chainPromise(promise)
-  else this._chainPromise(promise)
+  if (this._child) _chainPromise(this._child, promise)
+  else _chainPromise(this, promise)
 
   return promise
 }
@@ -152,7 +153,7 @@ Promise.prototype.then = function (onSuccess, onFail) {
  * @param {function(Error)} onFail
  * @return {Promise} returns a new promise with the output of the onFail handler
  */
-Promise.prototype.fail = function (onFail) {
+Promise.prototype['fail'] = function (onFail) {
   return this.then(null, onFail)
 }
 
@@ -163,7 +164,7 @@ Promise.prototype.fail = function (onFail) {
  * @param {function()} onComplete
  * @return {Promise} returns the current promise
  */
-Promise.prototype.fin = function (onComplete) {
+Promise.prototype['fin'] = function (onComplete) {
   if (this._hasData || this._error) {
     onComplete()
     return this
@@ -185,7 +186,7 @@ Promise.prototype.fin = function (onComplete) {
  *
  * @return {Promise} returns the current promise
  */
-Promise.prototype.end = function () {
+Promise.prototype['end'] = function () {
   if (this._error) {
     throw this._error
   }
@@ -198,17 +199,17 @@ Promise.prototype.end = function () {
  *
  * @param {Object} data the input
  */
-Promise.prototype._withInput = function (data) {
-  if (this._successFn) {
+function _withInput(promise, data) {
+  if (promise._successFn) {
     try {
-      this.resolve(this._successFn(data, this._currentContext))
+      promise.resolve(promise._successFn(data, promise._currentContext))
     } catch (e) {
-      this.reject(e)
+      promise.reject(e)
     }
-  } else this.resolve(data)
+  } else promise.resolve(data)
 
   // context is no longer needed
-  delete this._currentContext
+  delete promise._currentContext
 }
 
 /**
@@ -216,17 +217,17 @@ Promise.prototype._withInput = function (data) {
  *
  * @param {Error} e
  */
-Promise.prototype._withError = function (e) {
-  if (this._failFn) {
+function _withError(promise, e) {
+  if (promise._failFn) {
     try {
-      this.resolve(this._failFn(e, this._currentContext))
+      promise.resolve(promise._failFn(e, promise._currentContext))
     } catch (e) {
-      this.reject(e)
+      promise.reject(e)
     }
-  } else this.reject(e)
+  } else promise.reject(e)
 
   // context is no longer needed
-  delete this._currentContext
+  delete promise._currentContext
 }
 
 /**
@@ -234,20 +235,20 @@ Promise.prototype._withError = function (e) {
  *
  * @param {Promise} the promise to chain
  */
-Promise.prototype._chainPromise = function (promise) {
+function _chainPromise(rootPromise, promise) {
   var i
-  if (this._hasContext) promise._useContext(this._nextContext)
+  if (rootPromise._hasContext) _useContext(promise, rootPromise._nextContext)
 
-  if (this._child) {
-    this._child._chainPromise(promise)
-  } else if (this._hasData) {
-    promise._withInput(this._data)
-  } else if (this._error) {
-    promise._withError(this._error)
-  } else if (!this._promises) {
-    this._promises = [promise]
+  if (rootPromise._child) {
+    _chainPromise(rootPromise._child, promise)
+  } else if (rootPromise._hasData) {
+    _withInput(promise, rootPromise._data)
+  } else if (rootPromise._error) {
+    _withError(promise, rootPromise._error)
+  } else if (!rootPromise._promises) {
+    rootPromise._promises = [promise]
   } else {
-    this._promises.push(promise)
+    rootPromise._promises.push(promise)
   }
 }
 
@@ -273,7 +274,6 @@ function resolver(deferred, err, data) {
 Promise.prototype.makeNodeResolver = function () {
   return resolver.bind(null, this)
 }
-
 /**
  * Static function which creates and resolves a promise immediately
  *
@@ -415,12 +415,10 @@ function bindPromise(fn, scope, var_args) {
   }
 }
 
-module.exports = {
-    all: all
-  , bindPromise: bindPromise
-  , defer: defer
-  , delay: delay
-  , fcall: fcall
-  , resolve: resolve
-  , reject: reject
-}
+exports['all'] = all
+exports['bindPromise'] = bindPromise
+exports['defer'] = defer
+exports['delay'] = delay
+exports['fcall'] = fcall
+exports['resolve'] = resolve
+exports['reject'] = reject
