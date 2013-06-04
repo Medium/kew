@@ -30,7 +30,7 @@ var tagsPromise = htmlPromise.then(parseHtml)
 var linksPromise = tagsPromise.then(getLinks)
 
 // and then parses the actual urls from the links (using parseUrlsFromLinks())
-var urlsPromise = linksPromise.then(linksPromise)
+var urlsPromise = linksPromise.then(parseUrlsFromLinks)
 
 // finally, we have a promise that should only provide us with the urls and will run once all the previous steps have ran
 urlsPromise.then(function (urls) {
