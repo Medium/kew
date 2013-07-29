@@ -1,4 +1,5 @@
 var Q = require('../kew')
+var originalQ = require('q')
 
 // create a promise from a literal
 exports.testQResolve = function (test) {
@@ -184,4 +185,22 @@ exports.testBindPromise = function (test) {
       test.equal(val, 5, "Val should be 2 + 3")
       test.done()
     })
+}
+
+// test checking whether something is a promise
+exports.testIsPromise = function (test) {
+  var kewPromise = Q.defer()
+  var qPromise = originalQ(10)
+  var kewLikeObject = {
+    promise: function () {
+      return 'not a promise sucka!'
+    },
+    then: function (fn) {
+      fn('still not a promise, brah')
+    }
+  }
+  test.equal(Q.isPromise(kewPromise), true, 'A Kew promise is a promise')
+  test.equal(Q.isPromise(qPromise), true, 'A Q promise is a promise')
+  test.equal(Q.isPromise(kewLikeObject), false, 'A pretend promise is not a promise')
+  test.done()
 }
