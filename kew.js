@@ -1,3 +1,5 @@
+var originalQ = require('q')
+
 /**
  * An object representing a "promise" for a future value
  *
@@ -275,6 +277,16 @@ Promise.prototype.makeNodeResolver = function () {
 }
 
 /**
+ * Return true iff the given object is a promise
+ *
+ * @param {Object} obj The object to test
+ * @return {boolean} Whether the object is a promise
+ */
+function isPromise(obj) {
+  return obj._isPromise || originalQ.isPromise(obj)
+}
+
+/**
  * Static function which creates and resolves a promise immediately
  *
  * @param {Object} data data to resolve the promise with
@@ -332,7 +344,7 @@ function all(promises) {
   var counter = promises.length
 
   for (var i = 0; i < promises.length; i += 1) {
-    if (!promises[i] || !promises[i]._isPromise) {
+    if (!promises[i] || !isPromise(promises[i])) {
       outputs[i] = promises[i]
       counter -= 1
     } else {
@@ -421,6 +433,7 @@ module.exports = {
   , defer: defer
   , delay: delay
   , fcall: fcall
+  , isPromise: isPromise
   , resolve: resolve
   , reject: reject
 }
