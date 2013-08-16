@@ -220,6 +220,35 @@ Q.all(promises)
   })
 ```
 
+### `.delay()` for future promises
+
+If you need a little bit of delay (such as retrying a method call to a service that is "eventually consistent") before doing something else, ``Q.delay()`` is your friend:
+
+```javascript
+getUrlContent(url1)
+.fail(function () {
+  // Retry again after 200 milisseconds
+  return Q.delay(200).then(function () {
+    return getUrlContent(url1)
+  })
+})
+```
+
+### `.fcall()` for future promises
+
+``Q.fcall()`` can be used to convert node-style callbacks into promises:
+
+```javascript
+Q.fcall(fs.writeFile, '/tmp/myFile', 'content')
+.then(function () {
+  console.log('File written successfully')
+})
+.fail(function (err) {
+  console.log('Failed to write file', err)
+})
+```
+
+
 Contributing
 ------------
 
