@@ -234,7 +234,7 @@ getUrlContent(url1)
 })
 ```
 
-### `.fcall()` for future promises
+### `.fcall()` for Node.js callbacks
 
 ``Q.fcall()`` can be used to convert node-style callbacks into promises:
 
