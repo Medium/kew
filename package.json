@@ -16,9 +16,9 @@
       , "url": "https://github.com/Obvious/kew.git"
     }
   , "dependencies": {
-        "q": "0.9.6"
     }
   , "devDependencies": {
+        "q": "0.9.6",
         "nodeunit": "0.7.4"
     }
   , "scripts": {
