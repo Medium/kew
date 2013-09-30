@@ -196,11 +196,11 @@ exports.testIsPromise = function (test) {
       return 'not a promise sucka!'
     },
     then: function (fn) {
-      fn('still not a promise, brah')
+      fn('like a promise, brah!')
     }
   }
   test.equal(Q.isPromise(kewPromise), true, 'A Kew promise is a promise')
   test.equal(Q.isPromise(qPromise), true, 'A Q promise is a promise')
-  test.equal(Q.isPromise(kewLikeObject), false, 'A pretend promise is not a promise')
+  test.equal(Q.isPromise(kewLikeObject), true, 'A pretend promise is a promise')
   test.done()
 }
