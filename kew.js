@@ -1,5 +1,3 @@
-var originalQ = require('q')
-
 /**
  * An object representing a "promise" for a future value
  *
@@ -62,7 +60,7 @@ Promise.prototype.resolve = function (data) {
   if (this._error || this._hasData) throw new Error("Unable to resolve or reject the same promise twice")
 
   var i
-  if (data && data._isPromise) {
+  if (data && isPromise(data)) {
     this._child = data
     if (this._promises) {
       for (var i = 0; i < this._promises.length; i += 1) {
@@ -277,13 +275,18 @@ Promise.prototype.makeNodeResolver = function () {
 }
 
 /**
- * Return true iff the given object is a promise
+ * Return true iff the given object is a promise of this library.
+ *
+ * Because kew's API is slightly different than other promise libraries,
+ * it's important that we have a test for its promise type. If you want
+ * to test for a more general A+ promise, you should do a cap test for
+ * the features you want.
  *
  * @param {Object} obj The object to test
  * @return {boolean} Whether the object is a promise
  */
 function isPromise(obj) {
-  return obj._isPromise || originalQ.isPromise(obj)
+  return !!obj._isPromise
 }
 
 /**
