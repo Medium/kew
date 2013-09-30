@@ -1,4 +1,5 @@
 var Q = require('../kew')
+var originalQ = require('q')
 
 // test that fin() works with a synchronous resolve
 exports.testSynchronousThenAndFin = function (test) {
@@ -332,6 +333,30 @@ exports.testChainedMixed = function (test) {
   ])
   .then(function (data) {
     test.equal(data[0] && data[1] && data[2] && data[3] && data[4] && data[5], true, "All values should return true")
+    test.done()
+  })
+}
+
+exports.testInteroperabilityWithOtherPromises = function(test) {
+  var promise1 = Q.defer()
+  promise1.then(function(value) {
+    return originalQ(1 + value)
+  }).then(function(result) {
+    test.equal(result, 11)
+  })
+
+  var promise2 = Q.defer(),
+      errToThrow = new Error('error')
+  promise2.then(function() {
+    return originalQ.reject(errToThrow)
+  }).fail(function(err) {
+    test.equal(err, errToThrow)
+  })
+
+  promise1.resolve(10)
+  promise2.resolve()
+
+  Q.all([promise1, promise2]).then(function() {
     test.done()
   })
 }

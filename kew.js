@@ -60,7 +60,7 @@ Promise.prototype.resolve = function (data) {
   if (this._error || this._hasData) throw new Error("Unable to resolve or reject the same promise twice")
 
   var i
-  if (data && isPromise(data)) {
+  if (data && data._isPromise) {
     this._child = data
     if (this._promises) {
       for (var i = 0; i < this._promises.length; i += 1) {
@@ -75,23 +75,27 @@ Promise.prototype.resolve = function (data) {
       }
       delete this._onComplete
     }
-    return
-  }
+  } else if (data && isPromise(data)) {
+    data.then(
+      function(data) { this.resolve(data) }.bind(this),
+      function(err) { this.reject(err) }.bind(this)
+    )
+  } else {
+    this._hasData = true
+    this._data = data
 
-  this._hasData = true
-  this._data = data
-
-  if (this._onComplete) {
-    for (i = 0; i < this._onComplete.length; i++) {
-      this._onComplete[i]()
+    if (this._onComplete) {
+      for (i = 0; i < this._onComplete.length; i++) {
+        this._onComplete[i]()
+      }
     }
-  }
 
-  if (this._promises) {
-    for (i = 0; i < this._promises.length; i += 1) {
-      this._promises[i]._withInput(data)
+    if (this._promises) {
+      for (i = 0; i < this._promises.length; i += 1) {
+        this._promises[i]._withInput(data)
+      }
+      delete this._promises
     }
-    delete this._promises
   }
 }
 
