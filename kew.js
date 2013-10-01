@@ -75,23 +75,27 @@ Promise.prototype.resolve = function (data) {
       }
       delete this._onComplete
     }
-    return
-  }
+  } else if (data && isPromiseLike(data)) {
+    data.then(
+      function(data) { this.resolve(data) }.bind(this),
+      function(err) { this.reject(err) }.bind(this)
+    )
+  } else {
+    this._hasData = true
+    this._data = data
 
-  this._hasData = true
-  this._data = data
-
-  if (this._onComplete) {
-    for (i = 0; i < this._onComplete.length; i++) {
-      this._onComplete[i]()
+    if (this._onComplete) {
+      for (i = 0; i < this._onComplete.length; i++) {
+        this._onComplete[i]()
+      }
     }
-  }
 
-  if (this._promises) {
-    for (i = 0; i < this._promises.length; i += 1) {
-      this._promises[i]._withInput(data)
+    if (this._promises) {
+      for (i = 0; i < this._promises.length; i += 1) {
+        this._promises[i]._withInput(data)
+      }
+      delete this._promises
     }
-    delete this._promises
   }
 }
 
@@ -290,6 +294,17 @@ function isPromise(obj) {
 }
 
 /**
+ * Return true iff the given object is a promise-like object, e.g. appears to
+ * implement Promises/A+ specification
+ *
+ * @param {Object} obj The object to test
+ * @return {boolean} Whether the object is a promise-like object
+ */
+function isPromiseLike(obj) {
+  return typeof obj === 'object' && typeof obj.then === 'function'
+}
+
+/**
  * Static function which creates and resolves a promise immediately
  *
  * @param {Object} data data to resolve the promise with
@@ -437,6 +452,7 @@ module.exports = {
   , delay: delay
   , fcall: fcall
   , isPromise: isPromise
+  , isPromiseLike: isPromiseLike
   , resolve: resolve
   , reject: reject
 }

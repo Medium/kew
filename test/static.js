@@ -196,11 +196,29 @@ exports.testIsPromise = function (test) {
       return 'not a promise sucka!'
     },
     then: function (fn) {
-      fn('still not a promise, brah')
+      fn('like a promise, brah!')
     }
   }
   test.equal(Q.isPromise(kewPromise), true, 'A Kew promise is a promise')
   test.equal(Q.isPromise(qPromise), false, 'A Q promise is not a promise')
   test.equal(Q.isPromise(kewLikeObject), false, 'A pretend promise is not a promise')
+  test.done()
+}
+
+// test checking whether something is a promise-like object
+exports.testIsPromiseLike = function (test) {
+  var kewPromise = Q.defer()
+  var qPromise = originalQ(10)
+  var kewLikeObject = {
+    promise: function () {
+      return 'not a promise sucka!'
+    },
+    then: function (fn) {
+      fn('like a promise, brah!')
+    }
+  }
+  test.equal(Q.isPromiseLike(kewPromise), true, 'A Kew promise is promise-like')
+  test.equal(Q.isPromiseLike(qPromise), true, 'A Q promise is promise-like')
+  test.equal(Q.isPromiseLike(kewLikeObject), true, 'A pretend promise is a promise-like')
   test.done()
 }
