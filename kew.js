@@ -75,7 +75,7 @@ Promise.prototype.resolve = function (data) {
       }
       delete this._onComplete
     }
-  } else if (data && isPromise(data)) {
+  } else if (data && isPromiseLike(data)) {
     data.then(
       function(data) { this.resolve(data) }.bind(this),
       function(err) { this.reject(err) }.bind(this)
@@ -285,7 +285,18 @@ Promise.prototype.makeNodeResolver = function () {
  * @return {boolean} Whether the object is a promise
  */
 function isPromise(obj) {
-  return obj._isPromise || typeof obj.then === 'function'
+  return !!obj._isPromise
+}
+
+/**
+ * Return true iff the given object is a promise-like object, e.g. appears to
+ * implement Promises/A+ specification
+ *
+ * @param {Object} obj The object to test
+ * @return {boolean} Whether the object is a promise-like object
+ */
+function isPromiseLike(obj) {
+  return typeof obj === 'object' && typeof obj.then === 'function'
 }
 
 /**
@@ -436,6 +447,7 @@ module.exports = {
   , delay: delay
   , fcall: fcall
   , isPromise: isPromise
+  , isPromiseLike: isPromiseLike
   , resolve: resolve
   , reject: reject
 }
