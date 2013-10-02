@@ -146,6 +146,17 @@ exports.testAllArray = function (test) {
     })
 }
 
+exports.testAllIsPromiseLike = function(test) {
+  var promises = ['a', originalQ('b')]
+
+  Q.all(promises)
+    .then(function (results) {
+      test.equal(promises[0], 'a', "First element should be returned")
+      test.equal(promises[1], 'b', "Second element should be returned")
+      test.done()
+    })
+}
+
 // test delay
 exports.testDelay = function (test) {
   var val = "Hello, there"
