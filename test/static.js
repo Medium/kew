@@ -162,13 +162,64 @@ exports.testDelay = function (test) {
 
 // test fcall
 exports.testFcall = function (test) {
+  var calledYet = false
   var adder = function (a, b) {
+    calledYet = true
     return a + b
   }
 
   Q.fcall(adder, 2, 3)
     .then(function (val) {
       test.equal(val, 5, "Val should be 2 + 3")
+      test.done()
+    })
+  test.ok(!calledYet, "fcall() should delay function invocation until next tick")
+}
+
+// test fcall works when fn returns a promise
+exports.testFcallGivenPromise = function (test) {
+  var calledYet = false
+  var eventualAdd = function (a, b) {
+    calledYet = true
+    return Q.resolve(a + b)
+  }
+
+  Q.fcall(eventualAdd, 2, 3)
+    .then(function (val) {
+      test.equal(val, 5, "Val should be 2 + 3")
+      test.done()
+    })
+  test.ok(!calledYet, "fcall() should delay function invocation until next tick")
+}
+
+// test nfcall, successful case
+exports.testNfcall = function (test) {
+  var nodeStyleEventualAdder = function (a, b, callback) {
+    setTimeout(function () {
+      callback(undefined, a + b)
+    }, 2)
+  }
+
+  Q.nfcall(nodeStyleEventualAdder, 2, 3)
+    .then(function (val) {
+      test.equal(val, 5, "Val should be 2 + 3")
+      test.done()
+    })
+}
+
+// test nfcall, error case
+exports.testNfcallErrors = function (test) {
+  var err = new Error('fail')
+
+  var nodeStyleFailer = function (a, b, callback) {
+    setTimeout(function() {
+      callback(err)
+    }, 2)
+  }
+
+  Q.nfcall(nodeStyleFailer, 2, 3)
+    .fail(function (e) {
+      test.equal(e, err, "Promise successfully failed")
       test.done()
     })
 }
