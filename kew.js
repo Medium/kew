@@ -362,7 +362,7 @@ function all(promises) {
   var counter = promises.length
 
   for (var i = 0; i < promises.length; i += 1) {
-    if (!promises[i] || !isPromise(promises[i])) {
+    if (!promises[i] || !isPromiseLike(promises[i])) {
       outputs[i] = promises[i]
       counter -= 1
     } else {
