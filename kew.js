@@ -415,17 +415,38 @@ function delay(delayMs, returnVal) {
 }
 
 /**
- * Return a promise which will evaluate the function fn with the provided args
+ * Return a promise which will evaluate the function fn in a future turn with
+ * the provided args
  *
  * @param {function} fn
  * @param {Object} var_args a variable number of arguments
  * @return {Promise}
  */
 function fcall(fn, var_args) {
+  var rootArgs = Array.prototype.slice.call(arguments, 1)
   var defer = new Promise()
-  defer.resolve(fn.apply(null, Array.prototype.slice.call(arguments, 1)))
+  process.nextTick(function onNextTick() {
+    defer.resolve(fn.apply(undefined, rootArgs))
+  })
   return defer
 }
+
+
+/**
+ * Returns a promise that will be invoked with the result of a node style
+ * callback. All args to fn should be given except for the final callback arg
+ *
+ * @param {function} fn
+ * @param {Object} var_args a variable number of arguments
+ * @return {Promise}
+ */
+function nfcall(fn, var_args) {
+  // Insert an undefined argument for scope and let bindPromise() do the work.
+  var args = Array.prototype.slice.call(arguments, 0)
+  args.splice(1, 0, undefined)
+  return bindPromise.apply(undefined, args)()
+}
+
 
 /**
  * Binds a function to a scope with an optional number of curried arguments. Attaches
@@ -453,6 +474,7 @@ module.exports = {
   , fcall: fcall
   , isPromise: isPromise
   , isPromiseLike: isPromiseLike
+  , nfcall: nfcall
   , resolve: resolve
   , reject: reject
 }

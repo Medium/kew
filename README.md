@@ -186,8 +186,6 @@ var itemPromise = db.getItem(itemId)
 Other utility methods
 -------
 
-There's only one utility method as of now:
-
 ### `.all()` for many things
 
 If you're waiting for multiple promises to return, you may pass them (mixed in with literals if you desire) into `.all()` which will create a promise that resolves successfully with an array of the results of the promises:
@@ -234,18 +232,29 @@ getUrlContent(url1)
 })
 ```
 
-### `.fcall()` for Node.js callbacks
+### `.fcall()` for delaying a function invocation until the next tick:
+```javascript
+// Assume someFn() is a synchronous 2 argument function you want to delay.
+Q.fcall(someFn, arg1, arg2)
+  .then(function (result) {
+    console.log('someFn(' + arg1 + ', ' + arg2 + ') = ' + result)
+  })
+```
 
-``Q.fcall()`` can be used to convert node-style callbacks into promises:
+You can also use ``Q.fcall()`` with functions that return promises.
+
+### `.nfcall()` for Node.js callbacks
+
+``Q.nfcall()`` can be used to convert node-style callbacks into promises:
 
 ```javascript
-Q.fcall(fs.writeFile, '/tmp/myFile', 'content')
-.then(function () {
-  console.log('File written successfully')
-})
-.fail(function (err) {
-  console.log('Failed to write file', err)
-})
+Q.nfcall(fs.writeFile, '/tmp/myFile', 'content')
+  .then(function () {
+    console.log('File written successfully')
+  })
+  .fail(function (err) {
+    console.log('Failed to write file', err)
+  })
 ```
 
 
