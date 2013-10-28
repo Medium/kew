@@ -1,9 +1,9 @@
 /**
  * An object representing a "promise" for a future value
  *
- * @param {?function(Object, *=)=} onSuccess a function to handle successful
+ * @param {?function(*, *)=} onSuccess a function to handle successful
  *     resolution of this promise
- * @param {function(!Error, *=)=} onFail a function to handle failed
+ * @param {function(!Error, *)=} onFail a function to handle failed
  *     resolution of this promise
  * @constructor
  */
@@ -55,7 +55,7 @@ Promise.prototype.getContext = function () {
 /**
  * Resolve this promise with a specified value
  *
- * @param {Object} data
+ * @param {*} data
  */
 Promise.prototype.resolve = function (data) {
   if (this._error || this._hasData) throw new Error("Unable to resolve or reject the same promise twice")
@@ -136,8 +136,8 @@ Promise.prototype.reject = function (e) {
  * resolves. Allows for an optional second callback to handle the failure
  * case.
  *
- * @param {?function(Object, *=)} onSuccess
- * @param {function(!Error, *=)=} onFail
+ * @param {?function(*, *)} onSuccess
+ * @param {function(!Error, *)=} onFail
  * @return {!Promise} returns a new promise with the output of the onSuccess or
  *     onFail handler
  */
@@ -201,7 +201,7 @@ Promise.prototype.end = function () {
 /**
  * Attempt to resolve this promise with the specified input
  *
- * @param {Object} data the input
+ * @param {*} data the input
  */
 Promise.prototype._withInput = function (data) {
   if (this._successFn) {
@@ -264,7 +264,7 @@ Promise.prototype._chainPromise = function (promise) {
  *
  * @param {!Promise} deferred a promise that looks like a deferred
  * @param {Error=} err an optional error
- * @param {Object=} data optional data
+ * @param {*=} data optional data
  */
 function resolver(deferred, err, data) {
   if (err) deferred.reject(err)
@@ -275,7 +275,7 @@ function resolver(deferred, err, data) {
  * Creates a node-style resolver for a deferred by wrapping
  * resolver()
  *
- * @return {function(Error, Object)} node-style callback
+ * @return {function(Error, *)} node-style callback
  */
 Promise.prototype.makeNodeResolver = function () {
   return resolver.bind(null, this)
@@ -289,7 +289,7 @@ Promise.prototype.makeNodeResolver = function () {
  * to test for a more general A+ promise, you should do a cap test for
  * the features you want.
  *
- * @param {Object} obj The object to test
+ * @param {*} obj The object to test
  * @return {boolean} Whether the object is a promise
  */
 function isPromise(obj) {
@@ -300,7 +300,7 @@ function isPromise(obj) {
  * Return true iff the given object is a promise-like object, e.g. appears to
  * implement Promises/A+ specification
  *
- * @param {Object} obj The object to test
+ * @param {*} obj The object to test
  * @return {boolean} Whether the object is a promise-like object
  */
 function isPromiseLike(obj) {
@@ -310,7 +310,7 @@ function isPromiseLike(obj) {
 /**
  * Static function which creates and resolves a promise immediately
  *
- * @param {Object} data data to resolve the promise with
+ * @param {*} data data to resolve the promise with
  * @return {!Promise}
  */
 function resolve(data) {
@@ -335,10 +335,10 @@ function reject(e) {
  * Replace an element in an array with a new value. Used by .all() to
  * call from .then()
  *
- * @param {!Array.<Object>} arr
+ * @param {!Array} arr
  * @param {number} idx
- * @param {Object} val
- * @return {Object} the val that's being injected into the array
+ * @param {*} val
+ * @return {*} the val that's being injected into the array
  */
 function replaceEl(arr, idx, val) {
   arr[idx] = val
@@ -349,8 +349,8 @@ function replaceEl(arr, idx, val) {
  * Takes in an array of promises or literals and returns a promise which returns
  * an array of values when all have resolved. If any fail, the promise fails.
  *
- * @param {!Array.<Object>} promises
- * @return {!Promise.<!Array.<Object>>}
+ * @param {!Array} promises
+ * @return {!Promise.<!Array>}
  */
 function all(promises) {
   if (arguments.length != 1 || !Array.isArray(promises)) {
@@ -405,8 +405,8 @@ function defer() {
  * Return a promise which will wait a specified number of ms to resolve
  *
  * @param {number} delayMs
- * @param {Object} returnVal
- * @return {!Promise.<Object>} returns returnVal
+ * @param {*} returnVal
+ * @return {!Promise} returns returnVal
  */
 function delay(delayMs, returnVal) {
   var defer = new Promise()
