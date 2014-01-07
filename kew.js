@@ -1,9 +1,14 @@
+/** @typedef {function(?, ?)} */
+var OnSuccessCallbackType;
+/** @typedef {function(!Error, ?)} */
+var OnFailCallbackType;
+
 /**
  * An object representing a "promise" for a future value
  *
- * @param {?function(*, *)=} onSuccess a function to handle successful
+ * @param {?OnSuccessCallbackType=} onSuccess a function to handle successful
  *     resolution of this promise
- * @param {function(!Error, *)=} onFail a function to handle failed
+ * @param {OnFailCallbackType=} onFail a function to handle failed
  *     resolution of this promise
  * @constructor
  */
@@ -136,8 +141,8 @@ Promise.prototype.reject = function (e) {
  * resolves. Allows for an optional second callback to handle the failure
  * case.
  *
- * @param {?function(*, *)} onSuccess
- * @param {function(!Error, *)=} onFail
+ * @param {?OnSuccessCallbackType} onSuccess
+ * @param {OnFailCallbackType=} onFail
  * @return {!Promise} returns a new promise with the output of the onSuccess or
  *     onFail handler
  */
@@ -154,7 +159,7 @@ Promise.prototype.then = function (onSuccess, onFail) {
 /**
  * Provide a callback to be called whenever this promise is rejected
  *
- * @param {function(!Error, *=)} onFail
+ * @param {OnFailCallbackType} onFail
  * @return {!Promise} returns a new promise with the output of the onFail handler
  */
 Promise.prototype.fail = function (onFail) {
@@ -275,7 +280,7 @@ function resolver(deferred, err, data) {
  * Creates a node-style resolver for a deferred by wrapping
  * resolver()
  *
- * @return {function(Error, *)} node-style callback
+ * @return {function(?Error, *)} node-style callback
  */
 Promise.prototype.makeNodeResolver = function () {
   return resolver.bind(null, this)
@@ -349,8 +354,8 @@ function replaceEl(arr, idx, val) {
  * Takes in an array of promises or literals and returns a promise which returns
  * an array of values when all have resolved. If any fail, the promise fails.
  *
- * @param {!Array} promises
- * @return {!Promise.<!Array>}
+ * @param {!Array.<!Promise>} promises
+ * @return {!Promise}
  */
 function all(promises) {
   if (arguments.length != 1 || !Array.isArray(promises)) {
@@ -420,7 +425,7 @@ function delay(delayMs, returnVal) {
  * Return a promise which will evaluate the function fn in a future turn with
  * the provided args
  *
- * @param {function()} fn
+ * @param {function(...)} fn
  * @param {...} var_args a variable number of arguments
  * @return {!Promise}
  */
@@ -438,7 +443,7 @@ function fcall(fn, var_args) {
  * Returns a promise that will be invoked with the result of a node style
  * callback. All args to fn should be given except for the final callback arg
  *
- * @param {function()} fn
+ * @param {function(...)} fn
  * @param {...} var_args a variable number of arguments
  * @return {!Promise}
  */
@@ -454,7 +459,7 @@ function nfcall(fn, var_args) {
  * Binds a function to a scope with an optional number of curried arguments. Attaches
  * a node style callback as the last argument and returns a promise
  *
- * @param {function()} fn
+ * @param {function(...)} fn
  * @param {Object} scope
  * @param {...} var_args a variable number of arguments
  * @return {function(...)}: !Promise}
