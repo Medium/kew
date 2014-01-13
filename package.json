@@ -1,10 +1,12 @@
 {
     "name": "kew"
   , "description": "a lightweight promise library for node"
-  , "version": "0.3.0"
+  , "version": "0.3.1"
   , "homepage": "https://github.com/Obvious/kew"
   , "authors": [
-      "Jeremy Stanley <github@azulus.com> (https://github.com/azulus)"
+      "Jeremy Stanley <github@azulus.com> (https://github.com/azulus)",
+      "Nick Santos <nick@medium.com>",
+      "Xiao Ma <x@medium.com>"
     ]
   , "contributors": [
 
