@@ -360,3 +360,19 @@ exports.testInteroperabilityWithOtherPromises = function(test) {
     test.done()
   })
 }
+
+exports.testAllSettled = function(test) {
+  var promise1 = Q.resolve('woot')
+  var promise2 = Q.reject(new Error('oops'))
+
+  Q.allSettled([promise1, promise2, 'just a string'])
+    .then(function (data) {
+      test.equals('fulfilled', data[0].state)
+      test.equals('woot', data[0].value)
+      test.equals('rejected', data[1].state)
+      test.equals('oops', data[1].reason.message)
+      test.equals('fulfilled', data[2].state)
+      test.equals('just a string', data[2].value)
+      test.done()
+    })
+}

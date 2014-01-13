@@ -351,6 +351,40 @@ function replaceEl(arr, idx, val) {
 }
 
 /**
+ * Replace an element in an array as it is resolved with its value.
+ * Used by .allSettled().
+ *
+ * @param {!Array} arr
+ * @param {number} idx
+ * @param {*} value The value from a resolved promise.
+ * @return {*} the data that's being passed in
+ */
+function replaceElFulfilled(arr, idx, value) {
+  arr[idx] = {
+    state: 'fulfilled',
+    value: value
+  }
+  return value
+}
+
+/**
+ * Replace an element in an array as it is rejected with the reason.
+ * Used by .allSettled().
+ *
+ * @param {!Array} arr
+ * @param {number} idx
+ * @param {*} reason The reason why the original promise is rejected
+ * @return {*} the data that's being passed in
+ */
+function replaceElRejected(arr, idx, reason) {
+  arr[idx] = {
+    state: 'rejected',
+    reason: reason
+  }
+  return reason
+}
+
+/**
  * Takes in an array of promises or literals and returns a promise which returns
  * an array of values when all have resolved. If any fail, the promise fails.
  *
@@ -392,6 +426,42 @@ function all(promises) {
   if (counter === 0 && !finished) {
     finished = true
     promise.resolve(outputs)
+  }
+
+  return promise
+}
+
+/**
+ * Takes in an array of promises or literals and returns a promise which returns
+ * an array of values when all have resolved or rejected.
+ *
+ * @param {!Array.<!Promise>} promises
+ * @return {!Array.<Object>} The state of the promises. If a promise is resolved,
+ *     its corresponding state object is {state: 'fulfilled', value: Object};
+ *     whereas if a promise is rejected, its corresponding state object is
+ *     {state: 'rejected', reason: Object}
+ */
+function allSettled(promises) {
+  if (!Array.isArray(promises)) {
+    throw Error('The input to "allSettled()" should be an array of Promise')
+  }
+  if (!promises.length) return resolve([])
+
+  var outputs = []
+  var promise = new Promise()
+  var counter = promises.length
+
+  for (var i = 0; i < promises.length; i += 1) {
+    if (!promises[i] || !isPromiseLike(promises[i])) {
+      replaceElFulfilled(outputs, i, promises[i])
+      if ((--counter) === 0) promise.resolve(outputs)
+    } else {
+      promises[i]
+        .then(replaceElFulfilled.bind(null, outputs, i), replaceElRejected.bind(null, outputs, i))
+        .then(function () {
+          if ((--counter) === 0) promise.resolve(outputs)
+        })
+    }
   }
 
   return promise
@@ -484,4 +554,5 @@ module.exports = {
   , nfcall: nfcall
   , resolve: resolve
   , reject: reject
+  , allSettled: allSettled
 }
