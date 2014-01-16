@@ -204,6 +204,40 @@ Promise.prototype.end = function () {
 }
 
 /**
+ * Return a new promise that behaves the same as the current promise except
+ * that it will be rejected if the current promise does not get fulfilled
+ * after a certain amount of time.
+ *
+ * @param {number} timeoutMs The timeout threshold in msec
+ * @param {string=} timeoutMsg error message
+ * @returns a new promise with timeout
+ */
+ Promise.prototype.timeout = function (timeoutMs, timeoutMsg) {
+  var deferred = new Promise()
+  var isTimeout = false
+
+  var timeout = setTimeout(function() {
+    deferred.reject(new Error(timeoutMsg || 'Promise timeout after ' + timeoutMs + ' ms.'))
+    isTimeout = true
+  }, timeoutMs)
+
+  this.then(function (data) {
+    if (!isTimeout) {
+      clearTimeout(timeout)
+      deferred.resolve(data)
+    }
+  },
+  function (err) {
+    if (!isTimeout) {
+      clearTimeout(timeout)
+      deferred.reject(err)
+    }
+  })
+
+  return deferred.promise
+}
+
+/**
  * Attempt to resolve this promise with the specified input
  *
  * @param {*} data the input
