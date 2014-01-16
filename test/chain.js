@@ -376,3 +376,36 @@ exports.testAllSettled = function(test) {
       test.done()
     })
 }
+
+exports.testTimeout = function(test) {
+  var promise = Q.delay(50).timeout(45, 'Timeout message')
+  promise.then(function () {
+    test.fail('The promise is supposed to be timeout')
+  })
+  .fail(function (e) {
+    test.equals('Timeout message', e.message, 'The error message should be the one passed into timeout()')
+  })
+  .fin(test.done)
+}
+
+exports.testNotTimeout = function(test) {
+  var promise = Q.delay(40, 'expected data').timeout(45, 'Timeout message')
+  promise.then(function (data) {
+    test.equals('expected data', data, 'The data should be the data from the original promise')
+  })
+  .fail(function (e) {
+    test.fail('The promise is supposed to be resolved before the timeout')
+  })
+  .fin(test.done)
+}
+
+exports.testNotTimeoutButReject = function(test) {
+  var promise = Q.delay(40).then(function() {throw new Error('Reject message')}).timeout(45, 'Timeout message')
+  promise.then(function (data) {
+    test.fail('The promise is supposed to be rejected')
+  })
+  .fail(function (e) {
+    test.equals('Reject message', e.message, 'The error message should be from the original promise')
+  })
+  .fin(test.done)
+}
