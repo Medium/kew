@@ -17,6 +17,8 @@ function Promise(onSuccess, onFail) {
   this._isPromise = true
   this._successFn = onSuccess
   this._failFn = onFail
+  this._scope = this
+  this._boundArgs = null
   this._hasContext = false
   this._nextContext = undefined
   this._currentContext = undefined
@@ -41,6 +43,11 @@ Promise.prototype.clearContext = function () {
 
 /**
  * Set the context for all promise handlers to follow
+ *
+ * NOTE(dpup): This should be considered deprecated.  It does not do what most
+ * people would expect.  The context will be passed as a second argument to all
+ * subsequent callbacks.
+ *
  * @param {*} context An arbitrary context
  */
 Promise.prototype.setContext = function (context) {
@@ -157,6 +164,31 @@ Promise.prototype.then = function (onSuccess, onFail) {
 }
 
 /**
+ * Provide a callback to be called whenever this promise successfully
+ * resolves. The callback will be executed in the context of the provided scope.
+ *
+ * @param {?OnSuccessCallbackType} onSuccess
+ * @param {Object} scope Object whose context callback will be executed in.
+ * @param {...*} var_args Additional arguments to be passed to the promise callback.
+ * @return {!Promise} returns a new promise with the output of the onSuccess
+ */
+Promise.prototype.thenBound = function (onSuccess, scope, var_args) {
+  var promise = new Promise(onSuccess)
+  if (this._nextContext) promise._useContext(this._nextContext)
+
+  promise._scope = scope
+  if (arguments.length > 2) {
+    promise._boundArgs = Array.prototype.slice.call(arguments, 2)
+  }
+
+  // Chaining must happen after setting args and scope since it may fire callback.
+  if (this._child) this._child._chainPromise(promise)
+  else this._chainPromise(promise)
+
+  return promise
+}
+
+/**
  * Provide a callback to be called whenever this promise is rejected
  *
  * @param {OnFailCallbackType} onFail
@@ -164,6 +196,30 @@ Promise.prototype.then = function (onSuccess, onFail) {
  */
 Promise.prototype.fail = function (onFail) {
   return this.then(null, onFail)
+}
+
+/**
+ * Provide a callback to be called whenever this promise is rejected.
+ * The callback will be executed in the context of the provided scope.
+ *
+ * @param {OnFailCallbackType} onFail
+ * @param {Object} scope Object whose context callback will be executed in.
+ * @return {!Promise} returns a new promise with the output of the onSuccess
+ */
+Promise.prototype.failBound = function (onFail, scope) {
+  var promise = new Promise(null, onFail)
+  if (this._nextContext) promise._useContext(this._nextContext)
+
+  promise._scope = scope
+  if (arguments.length > 2) {
+    promise._boundArgs = Array.prototype.slice.call(arguments, 2)
+  }
+
+  // Chaining must happen after setting args and scope since it may fire callback.
+  if (this._child) this._child._chainPromise(promise)
+  else this._chainPromise(promise)
+
+  return promise
 }
 
 /**
@@ -245,7 +301,7 @@ Promise.prototype.end = function () {
 Promise.prototype._withInput = function (data) {
   if (this._successFn) {
     try {
-      this.resolve(this._successFn(data, this._currentContext))
+      this.resolve(this._call(this._successFn, [data, this._currentContext]))
     } catch (e) {
       this.reject(e)
     }
@@ -264,7 +320,7 @@ Promise.prototype._withInput = function (data) {
 Promise.prototype._withError = function (e) {
   if (this._failFn) {
     try {
-      this.resolve(this._failFn(e, this._currentContext))
+      this.resolve(this._call(this._failFn, [e, this._currentContext]))
     } catch (thrown) {
       this.reject(thrown)
     }
@@ -272,6 +328,20 @@ Promise.prototype._withError = function (e) {
 
   // context is no longer needed
   delete this._currentContext
+}
+
+/**
+ * Calls a function in the correct scope, and includes bound arguments.
+ * @param {Function} fn
+ * @param {Array} args
+ * @return {*}
+ * @private
+ */
+Promise.prototype._call = function (fn, args) {
+  if (this._boundArgs) {
+    args = this._boundArgs.concat(args)
+  }
+  return fn.apply(this._scope, args)
 }
 
 /**
@@ -530,7 +600,7 @@ function delay(delayMs, returnVal) {
  * the provided args
  *
  * @param {function(...)} fn
- * @param {...} var_args a variable number of arguments
+ * @param {...*} var_args a variable number of arguments
  * @return {!Promise}
  */
 function fcall(fn, var_args) {
@@ -548,7 +618,7 @@ function fcall(fn, var_args) {
  * callback. All args to fn should be given except for the final callback arg
  *
  * @param {function(...)} fn
- * @param {...} var_args a variable number of arguments
+ * @param {...*} var_args a variable number of arguments
  * @return {!Promise}
  */
 function nfcall(fn, var_args) {
@@ -565,7 +635,7 @@ function nfcall(fn, var_args) {
  *
  * @param {function(...)} fn
  * @param {Object} scope
- * @param {...} var_args a variable number of arguments
+ * @param {...*} var_args a variable number of arguments
  * @return {function(...)}: !Promise}
  */
 function bindPromise(fn, scope, var_args) {
