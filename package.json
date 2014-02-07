@@ -1,29 +1,29 @@
 {
-    "name": "kew"
-  , "description": "a lightweight promise library for node"
-  , "version": "0.3.3"
-  , "homepage": "https://github.com/Obvious/kew"
-  , "authors": [
-      "Jeremy Stanley <github@azulus.com> (https://github.com/azulus)",
-      "Nick Santos <nick@medium.com>",
-      "Xiao Ma <x@medium.com>"
-    ]
-  , "contributors": [
-
-    ]
-  , "keywords": ["kew", "promises"]
-  , "main": "./kew.js"
-  , "repository": {
-        "type": "git"
-      , "url": "https://github.com/Obvious/kew.git"
-    }
-  , "dependencies": {
-    }
-  , "devDependencies": {
-        "q": "0.9.7",
-        "nodeunit": "0.8.1"
-    }
-  , "scripts": {
-      "test": "./node_modules/nodeunit/bin/nodeunit test"
-    }
+  "name": "kew",
+  "description": "a lightweight promise library for node",
+  "version": "0.3.3",
+  "homepage": "https://github.com/Obvious/kew",
+  "authors": [
+    "Jeremy Stanley <github@azulus.com> (https://github.com/azulus)",
+    "Nick Santos <nick@medium.com>",
+    "Xiao Ma <x@medium.com>"
+  ],
+  "contributors": [],
+  "keywords": [
+    "kew",
+    "promises"
+  ],
+  "main": "./kew.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Obvious/kew.git"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "q": "0.9.7",
+    "nodeunit": "0.8.1"
+  },
+  "scripts": {
+    "test": "./node_modules/nodeunit/bin/nodeunit test"
+  }
 }
