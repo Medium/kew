@@ -373,6 +373,11 @@ exports.testAllSettled = function(test) {
       test.equals('oops', data[1].reason.message)
       test.equals('fulfilled', data[2].state)
       test.equals('just a string', data[2].value)
+    })
+
+  Q.allSettled([])
+    .then(function (data) {
+      test.equals(0, data.length)
       test.done()
     })
 }

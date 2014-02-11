@@ -67,6 +67,19 @@ var exampleAll = function () {
   all([new Promise(), new Promise()]);
 };
 
+var exampleAllSettled = function () {
+  allSettled([]);
+  allSettled([5, {}, null, 'string']);
+  var promise = allSettled([new Promise()]);
+  promise.then(function(results){});
+};
+
+var exampleTimeout = function () {
+  var promise = new Promise();
+  var timeoutPromise = promise.timeout(50);
+  timeoutPromise.then(function(result){});
+};
+
 var noArgsFunction = function () {};
 
 var exampleFcall = function () {
