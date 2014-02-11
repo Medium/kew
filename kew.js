@@ -266,7 +266,7 @@ Promise.prototype.end = function () {
  *
  * @param {number} timeoutMs The timeout threshold in msec
  * @param {string=} timeoutMsg error message
- * @returns a new promise with timeout
+ * @returns {!Promise} a new promise with timeout
  */
  Promise.prototype.timeout = function (timeoutMs, timeoutMsg) {
   var deferred = new Promise()
@@ -536,18 +536,18 @@ function all(promises) {
 }
 
 /**
- * Takes in an array of promises or literals and returns a promise which returns
- * an array of values when all have resolved or rejected.
+ * Takes in an array of promises or values and returns a promise that is
+ * fulfilled with an array of state objects when all have resolved or
+ * rejected. If a promise is resolved, its corresponding state object is
+ * {state: 'fulfilled', value: Object}; whereas if a promise is rejected, its
+ * corresponding state object is {state: 'rejected', reason: Object}.
  *
- * @param {!Array.<!Promise>} promises
- * @return {!Array.<Object>} The state of the promises. If a promise is resolved,
- *     its corresponding state object is {state: 'fulfilled', value: Object};
- *     whereas if a promise is rejected, its corresponding state object is
- *     {state: 'rejected', reason: Object}
+ * @param {!Array} promises or values
+ * @return {!Promise} Promise fulfilled with state objects for each input
  */
 function allSettled(promises) {
   if (!Array.isArray(promises)) {
-    throw Error('The input to "allSettled()" should be an array of Promise')
+    throw Error('The input to "allSettled()" should be an array of Promise or values')
   }
   if (!promises.length) return resolve([])
 
