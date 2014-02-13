@@ -1,4 +1,14 @@
-// java -jar ../../../third_party/closure-compiler/compiler.jar --language_in ECMASCRIPT5_STRICT --warning_level VERBOSE --compilation_level ADVANCED_OPTIMIZATIONS --externs ../../../login/externs_node.js --jscomp_error missingProperties --jscomp_error checkTypes kew.js kew_bad.js
+/**
+ * @fileoverview A sample file to test type-checking
+ */
+
+var kew = require('../kew')
+var Promise = kew._Promise
+var all = kew.all
+var allSettled = kew.allSettled
+var fcall = kew.fcall
+var nfcall = kew.nfcall
+var bindPromise = kew.bindPromise
 
 /**
 @param {Array} result

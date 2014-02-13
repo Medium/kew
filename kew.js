@@ -659,4 +659,5 @@ module.exports = {
   , resolve: resolve
   , reject: reject
   , allSettled: allSettled
+  , _Promise: Promise
 }
