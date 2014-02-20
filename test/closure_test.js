@@ -3,7 +3,7 @@
  */
 
 var kew = require('../kew')
-var Promise = kew._Promise
+var Promise = kew.Promise
 var all = kew.all
 var allSettled = kew.allSettled
 var fcall = kew.fcall

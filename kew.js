@@ -1,16 +1,13 @@
-/** @typedef {function(?, ?)} */
-var OnSuccessCallbackType;
-/** @typedef {function(!Error, ?)} */
-var OnFailCallbackType;
 
 /**
  * An object representing a "promise" for a future value
  *
- * @param {?OnSuccessCallbackType=} onSuccess a function to handle successful
+ * @param {?function(T, ?)=} onSuccess a function to handle successful
  *     resolution of this promise
- * @param {OnFailCallbackType=} onFail a function to handle failed
+ * @param {?function(!Error, ?)=} onFail a function to handle failed
  *     resolution of this promise
  * @constructor
+ * @template T
  */
 function Promise(onSuccess, onFail) {
   this.promise = this
@@ -148,10 +145,11 @@ Promise.prototype.reject = function (e) {
  * resolves. Allows for an optional second callback to handle the failure
  * case.
  *
- * @param {?OnSuccessCallbackType} onSuccess
- * @param {OnFailCallbackType=} onFail
- * @return {!Promise} returns a new promise with the output of the onSuccess or
+ * @param {?function(this:void, T, ?): RESULT|undefined} onSuccess
+ * @param {?function(this:void, !Error, ?): RESULT=} onFail
+ * @return {!Promise.<RESULT>} returns a new promise with the output of the onSuccess or
  *     onFail handler
+ * @template RESULT
  */
 Promise.prototype.then = function (onSuccess, onFail) {
   var promise = new Promise(onSuccess, onFail)
@@ -167,10 +165,11 @@ Promise.prototype.then = function (onSuccess, onFail) {
  * Provide a callback to be called whenever this promise successfully
  * resolves. The callback will be executed in the context of the provided scope.
  *
- * @param {?OnSuccessCallbackType} onSuccess
- * @param {Object} scope Object whose context callback will be executed in.
+ * @param {function(this:SCOPE, T, ?): RESULT} onSuccess
+ * @param {SCOPE} scope Object whose context callback will be executed in.
  * @param {...*} var_args Additional arguments to be passed to the promise callback.
- * @return {!Promise} returns a new promise with the output of the onSuccess
+ * @return {!Promise.<RESULT>} returns a new promise with the output of the onSuccess
+ * @template SCOPE, RESULT
  */
 Promise.prototype.thenBound = function (onSuccess, scope, var_args) {
   var promise = new Promise(onSuccess)
@@ -191,8 +190,8 @@ Promise.prototype.thenBound = function (onSuccess, scope, var_args) {
 /**
  * Provide a callback to be called whenever this promise is rejected
  *
- * @param {OnFailCallbackType} onFail
- * @return {!Promise} returns a new promise with the output of the onFail handler
+ * @param {function(this:void, !Error, ?)} onFail
+ * @return {!Promise.<T>} returns a new promise with the output of the onFail handler
  */
 Promise.prototype.fail = function (onFail) {
   return this.then(null, onFail)
@@ -202,11 +201,13 @@ Promise.prototype.fail = function (onFail) {
  * Provide a callback to be called whenever this promise is rejected.
  * The callback will be executed in the context of the provided scope.
  *
- * @param {OnFailCallbackType} onFail
- * @param {Object} scope Object whose context callback will be executed in.
- * @return {!Promise} returns a new promise with the output of the onSuccess
+ * @param {function(this:SCOPE, Error, ?)} onFail
+ * @param {SCOPE} scope Object whose context callback will be executed in.
+ * @param {...?} var_args
+ * @return {!Promise.<T>} returns a new promise with the output of the onSuccess
+ * @template SCOPE
  */
-Promise.prototype.failBound = function (onFail, scope) {
+Promise.prototype.failBound = function (onFail, scope, var_args) {
   var promise = new Promise(null, onFail)
   if (this._nextContext) promise._useContext(this._nextContext)
 
@@ -227,7 +228,7 @@ Promise.prototype.failBound = function (onFail, scope) {
  * or rejected.
  *
  * @param {function()} onComplete
- * @return {!Promise} returns the current promise
+ * @return {!Promise.<T>} returns the current promise
  */
 Promise.prototype.fin = function (onComplete) {
   if (this._hasData || this._error) {
@@ -249,14 +250,42 @@ Promise.prototype.fin = function (onComplete) {
  * Mark this promise as "ended". If the promise is rejected, this will throw an
  * error in whatever scope it happens to be in
  *
- * @return {!Promise} returns the current promise
+ * @return {!Promise.<T>} returns the current promise
+ * @deprecated Prefer done(), because it's consistent with Q.
  */
 Promise.prototype.end = function () {
+  this._end()
+  return this
+}
+
+
+/**
+ * Mark this promise as "ended".
+ * @private
+ */
+Promise.prototype._end = function () {
   if (this._error) {
     throw this._error
   }
   this._ended = true
   return this
+}
+
+/**
+ * Close the promise. Any errors after this completes will be thrown to the global handler.
+ *
+ * @param {?function(this:void, T, ?)=} onSuccess a function to handle successful
+ *     resolution of this promise
+ * @param {?function(this:void, !Error, ?)=} onFailure a function to handle failed
+ *     resolution of this promise
+ * @return {void}
+ */
+Promise.prototype.done = function (onSuccess, onFailure) {
+  var self = this
+  if (onSuccess || onFailure) {
+    self = self.then(onSuccess, onFailure)
+  }
+  self._end()
 }
 
 /**
@@ -266,7 +295,7 @@ Promise.prototype.end = function () {
  *
  * @param {number} timeoutMs The timeout threshold in msec
  * @param {string=} timeoutMsg error message
- * @returns {!Promise} a new promise with timeout
+ * @return {!Promise.<T>} a new promise with timeout
  */
  Promise.prototype.timeout = function (timeoutMs, timeoutMsg) {
   var deferred = new Promise()
@@ -419,8 +448,9 @@ function isPromiseLike(obj) {
 /**
  * Static function which creates and resolves a promise immediately
  *
- * @param {*} data data to resolve the promise with
- * @return {!Promise}
+ * @param {T} data data to resolve the promise with
+ * @return {!Promise.<T>}
+ * @template T
  */
 function resolve(data) {
   var promise = new Promise()
@@ -493,7 +523,7 @@ function replaceElRejected(arr, idx, reason) {
  * an array of values when all have resolved. If any fail, the promise fails.
  *
  * @param {!Array.<!Promise>} promises
- * @return {!Promise}
+ * @return {!Promise.<!Array>}
  */
 function all(promises) {
   if (arguments.length != 1 || !Array.isArray(promises)) {
@@ -543,7 +573,7 @@ function all(promises) {
  * corresponding state object is {state: 'rejected', reason: Object}.
  *
  * @param {!Array} promises or values
- * @return {!Promise} Promise fulfilled with state objects for each input
+ * @return {!Promise.<!Array>} Promise fulfilled with state objects for each input
  */
 function allSettled(promises) {
   if (!Array.isArray(promises)) {
@@ -659,5 +689,5 @@ module.exports = {
   , resolve: resolve
   , reject: reject
   , allSettled: allSettled
-  , _Promise: Promise
+  , Promise: Promise
 }
