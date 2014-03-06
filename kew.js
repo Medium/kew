@@ -678,16 +678,17 @@ function bindPromise(fn, scope, var_args) {
 }
 
 module.exports = {
-    all: all
-  , bindPromise: bindPromise
-  , defer: defer
-  , delay: delay
-  , fcall: fcall
-  , isPromise: isPromise
-  , isPromiseLike: isPromiseLike
-  , nfcall: nfcall
-  , resolve: resolve
-  , reject: reject
-  , allSettled: allSettled
-  , Promise: Promise
+  all: all,
+  bindPromise: bindPromise,
+  defer: defer,
+  delay: delay,
+  fcall: fcall,
+  isPromise: isPromise,
+  isPromiseLike: isPromiseLike,
+  nfcall: nfcall,
+  resolve: resolve,
+  reject: reject,
+  allSettled: allSettled,
+  /** @constructor */
+  Promise: Promise
 }
