@@ -637,7 +637,11 @@ function fcall(fn, var_args) {
   var rootArgs = Array.prototype.slice.call(arguments, 1)
   var defer = new Promise()
   process.nextTick(function onNextTick() {
-    defer.resolve(fn.apply(undefined, rootArgs))
+    try {
+      defer.resolve(fn.apply(undefined, rootArgs))
+    } catch (e) {
+      defer.reject(e)
+    }
   })
   return defer
 }
@@ -672,7 +676,11 @@ function bindPromise(fn, scope, var_args) {
   var rootArgs = Array.prototype.slice.call(arguments, 2)
   return function onBoundPromise(var_args) {
     var defer = new Promise()
-    fn.apply(scope, rootArgs.concat(Array.prototype.slice.call(arguments, 0), defer.makeNodeResolver()))
+    try {
+      fn.apply(scope, rootArgs.concat(Array.prototype.slice.call(arguments, 0), defer.makeNodeResolver()))
+    } catch (e) {
+      defer.reject(e)
+    }
     return defer
   }
 }

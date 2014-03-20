@@ -187,6 +187,23 @@ exports.testFcall = function (test) {
   test.ok(!calledYet, "fcall() should delay function invocation until next tick")
 }
 
+// test fcall
+exports.testFcallError = function (test) {
+  var error = function () {
+    throw new Error('my error')
+  }
+
+  Q.fcall(error)
+    .then(function (val) {
+      test.fail('fcall should throw exception')
+    }, function (err) {
+      test.equal('my error', err.message)
+    })
+    .then(function () {
+      test.done()
+    })
+}
+
 // test fcall works when fn returns a promise
 exports.testFcallGivenPromise = function (test) {
   var calledYet = false
@@ -231,6 +248,23 @@ exports.testNfcallErrors = function (test) {
   Q.nfcall(nodeStyleFailer, 2, 3)
     .fail(function (e) {
       test.equal(e, err, "Promise successfully failed")
+      test.done()
+    })
+}
+
+// test fcall
+exports.testNFcallErrorSync = function (test) {
+  var error = function () {
+    throw new Error('my error')
+  }
+
+  Q.nfcall(error)
+    .then(function (val) {
+      test.fail('nfcall should throw exception')
+    }, function (err) {
+      test.equal('my error', err.message)
+    })
+    .then(function () {
       test.done()
     })
 }
