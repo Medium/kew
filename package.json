@@ -22,7 +22,7 @@
   "devDependencies": {
     "q": "0.9.7",
     "nodeunit": "0.8.1",
-    "closure-npc": "0.0.12"
+    "closure-npc": "0.1.3"
   },
   "scripts": {
     "test": "nodeunit test && closure-npc ./test/closure_test.js --jscomp_error=checkTypes"

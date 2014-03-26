@@ -163,7 +163,9 @@ exports.testDelay = function (test) {
   var startTime = Date.now()
 
   Q.resolve(val)
-    .then(Q.delay.bind(Q, 1000))
+    .then(function (v) {
+      return Q.delay(v, 1000)
+    })
     .then(function (returnVal) {
       test.equal(returnVal, val, "Val should be passed through")
       test.equal(Date.now() - startTime >= 1000, true, "Should have waited a second")
