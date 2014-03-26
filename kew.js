@@ -64,7 +64,7 @@ Promise.prototype.getContext = function () {
 /**
  * Resolve this promise with a specified value
  *
- * @param {*} data
+ * @param {*=} data
  */
 Promise.prototype.resolve = function (data) {
   if (this._error || this._hasData) throw new Error("Unable to resolve or reject the same promise twice")
@@ -613,16 +613,39 @@ function defer() {
 /**
  * Return a promise which will wait a specified number of ms to resolve
  *
- * @param {number} delayMs
- * @param {*} returnVal
- * @return {!Promise} returns returnVal
+ * @param {*} delayMsOrVal A delay (in ms) if this takes one argument, or ther
+ *     return value if it takes two.
+ * @param {number=} opt_delayMs
+ * @return {!Promise}
  */
-function delay(delayMs, returnVal) {
+function delay(delayMsOrVal, opt_delayMs) {
+  var returnVal = undefined
+  var delayMs = delayMsOrVal
+  if (typeof opt_delayMs != 'undefined') {
+    delayMs = opt_delayMs
+    returnVal = delayMsOrVal
+  }
+
+  if (typeof delayMs != 'number') {
+    throw new Error('Bad delay value ' + delayMs)
+  }
+
   var defer = new Promise()
   setTimeout(function onDelay() {
     defer.resolve(returnVal)
   }, delayMs)
   return defer
+}
+
+/**
+ * Returns a promise that has the same result as `this`, but fulfilled
+ * after at least ms milliseconds
+ * @param {number} ms
+ */
+Promise.prototype.delay = function (ms) {
+  return this.then(function (val) {
+    return delay(val, ms)
+  })
 }
 
 /**

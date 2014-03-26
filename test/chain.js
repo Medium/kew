@@ -394,7 +394,7 @@ exports.testTimeout = function(test) {
 }
 
 exports.testNotTimeout = function(test) {
-  var promise = Q.delay(40, 'expected data').timeout(45, 'Timeout message')
+  var promise = Q.delay('expected data', 40).timeout(45, 'Timeout message')
   promise.then(function (data) {
     test.equals('expected data', data, 'The data should be the data from the original promise')
   })
@@ -413,4 +413,16 @@ exports.testNotTimeoutButReject = function(test) {
     test.equals('Reject message', e.message, 'The error message should be from the original promise')
   })
   .fin(test.done)
+}
+
+exports.testDelay = function (test) {
+  var timePassed = false
+  setTimeout(function () {
+    timePassed = true
+  }, 10)
+  Q.resolve('expected').delay(20).then(function (result) {
+    test.equal('expected', result)
+    test.ok(timePassed)
+    test.done()
+  })
 }
