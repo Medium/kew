@@ -232,6 +232,15 @@ getUrlContent(url1)
 })
 ```
 
+If two arguments are passed, the first will be used as the return value, and the
+second will be the delay in milliseconds.
+
+```javascript
+Q.delay(obj, 20).then(function (result) {
+  console.log(result) // logs `obj` after 20ms
+})
+```
+
 ### `.fcall()` for delaying a function invocation until the next tick:
 ```javascript
 // Assume someFn() is a synchronous 2 argument function you want to delay.
