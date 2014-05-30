@@ -19,6 +19,15 @@ function Promise(onSuccess, onFail) {
   this._hasContext = false
   this._nextContext = undefined
   this._currentContext = undefined
+  this._createdAt = Date.now()
+  var stack = new Error().stack.split('\n')
+  this._location = 'UNKNOWN LOCATION'
+  for (var i = 0; i < stack.length; i++) {
+    var line = stack[i]
+    if (line.indexOf('at ') < 0 || line.indexOf('kew.js') >= 0) continue
+    this._location = line.slice(line.indexOf('at ') + 3).trim()
+    break
+  }
 }
 
 /**
@@ -69,6 +78,11 @@ Promise.prototype.getContext = function () {
 Promise.prototype.resolve = function (data) {
   if (this._error || this._hasData) throw new Error("Unable to resolve or reject the same promise twice")
 
+  this._resolvedAt = Date.now()
+  if (this._resolvedAt - this._createdAt > 5000) {
+    console.log('Resolved a promise created at', this._location, '(lived for', this._resolvedAt - this._createdAt, 'ms)')
+  }
+
   var i
   if (data && isPromise(data)) {
     this._child = data
@@ -116,6 +130,11 @@ Promise.prototype.resolve = function (data) {
  */
 Promise.prototype.reject = function (e) {
   if (this._error || this._hasData) throw new Error("Unable to resolve or reject the same promise twice")
+
+  this._rejectedAt = Date.now()
+  if (this._rejectedAt - this._createdAt > 5000) {
+    console.log('Rejected a promise created at', this._location, '(lived for', this._rejectedAt - this._createdAt, 'ms)')
+  }
 
   var i
   this._error = e
