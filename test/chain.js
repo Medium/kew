@@ -248,10 +248,14 @@ exports.testChainedEndUncaught = function (test) {
   errs.push(new Error('nope 2'))
   errs.push(new Error('nope 3'))
 
-  process.on('uncaughtException', function (e) {
+  var cb = function (e) {
     test.equal(e, errs.shift(), "Error should be uncaught")
-    if (errs.length === 0) test.done()
-  })
+    if (errs.length === 0) {
+      process.removeListener('uncaughtException', cb)
+      test.done()
+    }
+  }
+  process.on('uncaughtException', cb)
 
   var defer = Q.defer()
   defer.promise.end()
@@ -271,6 +275,7 @@ exports.testChainedEndUncaught = function (test) {
   setTimeout(function () {
     defer.reject(errs[0])
   }, 10)
+
 }
 
 // test .end() is called with a parent scope and is caught

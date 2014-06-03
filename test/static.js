@@ -23,6 +23,50 @@ exports.testQReject = function (test) {
     })
 }
 
+// Test Q.stats
+exports.testQStatistics = function (test) {
+  var err = new Error("hello")
+
+  var errorsEmitted = Q.stats.errorsEmitted
+  var errorsHandled = Q.stats.errorsHandled
+
+  var rejected = Q.reject(err)
+  test.equal(errorsEmitted + 1, Q.stats.errorsEmitted, "One additional error emitted")
+  test.equal(errorsHandled, Q.stats.errorsHandled, "Error hasn't been handled yet")
+
+  rejected.fail(function (e) {
+    test.equal(e, err, "Promise successfully failed")
+    test.equal(errorsEmitted + 1, Q.stats.errorsEmitted, "One additional error emitted")
+    test.equal(errorsHandled + 1, Q.stats.errorsHandled, "One additional error handled")
+  })
+
+  rejected.fail(function (e) {
+    test.equal(e, err, "Promise successfully failed")
+    test.equal(errorsEmitted + 1, Q.stats.errorsEmitted, "One additional error emitted")
+    test.equal(errorsHandled + 1, Q.stats.errorsHandled, "Only count error handling once")
+  })
+  test.done()
+}
+
+exports.testQDeferredStatistics = function (test) {
+  var err = new Error("hello")
+
+  var errorsEmitted = Q.stats.errorsEmitted
+  var errorsHandled = Q.stats.errorsHandled
+
+  var deferred = Q.defer()
+
+  deferred.fail(function (e) {
+    test.equal(e, err, "Promise successfully failed")
+    test.equal(errorsEmitted + 1, Q.stats.errorsEmitted, "One additional error emitted")
+    test.equal(errorsHandled + 1, Q.stats.errorsHandled, "One additional error handled")
+    test.done()
+  })
+
+  var rejected = deferred.reject(err)
+
+}
+
 // test Q.all with an empty array
 exports.testQEmptySuccess = function (test) {
   var promises = []

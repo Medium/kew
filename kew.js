@@ -22,6 +22,25 @@ function Promise(onSuccess, onFail) {
 }
 
 /**
+ * Keep track of the number of promises that are rejected along side
+ * the number of rejected promises we call _failFn on so we can look
+ * for leaked rejections.
+ */
+function PromiseStats() {
+  this.errorsEmitted = 0
+  this.errorsHandled = 0
+}
+
+var stats = new PromiseStats()
+
+Promise.prototype._handleError = function () {
+  if (!this._errorHandled) {
+    stats.errorsHandled++
+    this._errorHandled = true
+  }
+}
+
+/**
  * Specify that the current promise should have a specified context
  * @param  {*} context context
  * @private
@@ -119,8 +138,10 @@ Promise.prototype.reject = function (e) {
 
   var i
   this._error = e
+  stats.errorsEmitted++
 
   if (this._ended) {
+    this._handleError()
     process.nextTick(function onPromiseThrow() {
       throw e
     })
@@ -133,6 +154,7 @@ Promise.prototype.reject = function (e) {
   }
 
   if (this._promises) {
+    this._handleError()
     for (i = 0; i < this._promises.length; i += 1) {
       this._promises[i]._withError(e)
     }
@@ -265,6 +287,7 @@ Promise.prototype.end = function () {
  */
 Promise.prototype._end = function () {
   if (this._error) {
+    this._handleError()
     throw this._error
   }
   this._ended = true
@@ -388,6 +411,9 @@ Promise.prototype._chainPromise = function (promise) {
   } else if (this._hasData) {
     promise._withInput(this._data)
   } else if (this._error) {
+    // We can't rely on _withError() because it's called on the chained promises
+    // and we need to use the source's _errorHandled state
+    this._handleError()
     promise._withError(this._error)
   } else if (!this._promises) {
     this._promises = [promise]
@@ -719,6 +745,7 @@ module.exports = {
   , nfcall: nfcall
   , resolve: resolve
   , reject: reject
+  , stats: stats
   , allSettled: allSettled
   , Promise: Promise
 }
