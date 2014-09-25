@@ -21,6 +21,45 @@ function Promise(onSuccess, onFail) {
   this._currentContext = undefined
 }
 
+
+var nextTick = process.nextTick
+
+/**
+ * All callback execution should go through this function.  While the
+ * implementation below is simple, it can be replaced with more sophisticated
+ * implementations that enforce QoS on the event loop.
+ *
+ * @param {Promise} defer
+ * @param {Function} callback
+ * @param {Object} scope
+ * @param {Array} args
+ */
+function nextTickCallback (defer, callback, scope, args) {
+  try {
+    defer.resolve(callback.apply(scope, args))
+  } catch (thrown) {
+    defer.reject(thrown)
+  }
+}
+
+/**
+ * Used for accessing the nextTick function from outside the kew module.
+ *
+ * @return {Function}
+ */
+function getNextTickFunction () {
+  return nextTick
+}
+
+/**
+ * Used for overriding the nextTick function from outside the kew module so that
+ * the user can plug and play lower level schedulers
+ * @param {Function} fn
+ */
+function setNextTickFunction (fn) {
+  nextTick = fn
+}
+
 /**
  * Keep track of the number of promises that are rejected along side
  * the number of rejected promises we call _failFn on so we can look
@@ -121,6 +160,7 @@ Promise.prototype.resolve = function (data) {
 
     if (this._promises) {
       for (i = 0; i < this._promises.length; i += 1) {
+        this._promises[i]._useContext(this._nextContext)
         this._promises[i]._withInput(data)
       }
       delete this._promises
@@ -156,6 +196,7 @@ Promise.prototype.reject = function (e) {
   if (this._promises) {
     this._handleError()
     for (i = 0; i < this._promises.length; i += 1) {
+      this._promises[i]._useContext(this._nextContext)
       this._promises[i]._withError(e)
     }
     delete this._promises
@@ -352,12 +393,10 @@ Promise.prototype.done = function (onSuccess, onFailure) {
  */
 Promise.prototype._withInput = function (data) {
   if (this._successFn) {
-    try {
-      this.resolve(this._call(this._successFn, [data, this._currentContext]))
-    } catch (e) {
-      this.reject(e)
-    }
-  } else this.resolve(data)
+    this._nextTick(this._successFn, [data, this._currentContext])
+  } else {
+    this.resolve(data)
+  }
 
   // context is no longer needed
   delete this._currentContext
@@ -371,12 +410,10 @@ Promise.prototype._withInput = function (data) {
  */
 Promise.prototype._withError = function (e) {
   if (this._failFn) {
-    try {
-      this.resolve(this._call(this._failFn, [e, this._currentContext]))
-    } catch (thrown) {
-      this.reject(thrown)
-    }
-  } else this.reject(e)
+    this._nextTick(this._failFn, [e, this._currentContext])
+  } else {
+    this.reject(e)
+  }
 
   // context is no longer needed
   delete this._currentContext
@@ -386,14 +423,13 @@ Promise.prototype._withError = function (e) {
  * Calls a function in the correct scope, and includes bound arguments.
  * @param {Function} fn
  * @param {Array} args
- * @return {*}
  * @private
  */
-Promise.prototype._call = function (fn, args) {
+Promise.prototype._nextTick = function (fn, args) {
   if (this._boundArgs) {
     args = this._boundArgs.concat(args)
   }
-  return fn.apply(this._scope, args)
+  nextTick(nextTickCallback.bind(null, this, fn, this._scope, args))
 }
 
 /**
@@ -685,13 +721,7 @@ Promise.prototype.delay = function (ms) {
 function fcall(fn, var_args) {
   var rootArgs = Array.prototype.slice.call(arguments, 1)
   var defer = new Promise()
-  process.nextTick(function onNextTick() {
-    try {
-      defer.resolve(fn.apply(undefined, rootArgs))
-    } catch (e) {
-      defer.reject(e)
-    }
-  })
+  nextTick(nextTickCallback.bind(null, defer, fn, undefined, rootArgs))
   return defer
 }
 
@@ -748,4 +778,6 @@ module.exports = {
   , stats: stats
   , allSettled: allSettled
   , Promise: Promise
+  , getNextTickFunction: getNextTickFunction
+  , setNextTickFunction: setNextTickFunction
 }
