@@ -21,8 +21,16 @@ function Promise(onSuccess, onFail) {
   this._currentContext = undefined
 }
 
+/**
+ * @param {function()} callback
+ */
+function nextTick (callback) {
+  callback()
+}
 
-var nextTick = process.nextTick
+if (typeof process !== 'undefined') {
+  nextTick = process.nextTick
+}
 
 /**
  * All callback execution should go through this function.  While the
