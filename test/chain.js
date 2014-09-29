@@ -243,14 +243,16 @@ exports.testChainedPromises = function (test) {
 
 // test .end() is called with no parent scope (causing an uncaught exception)
 exports.testChainedEndUncaught = function (test) {
+  var uncaughtErrors = 0
   var errs = []
   errs.push(new Error('nope 1'))
   errs.push(new Error('nope 2'))
   errs.push(new Error('nope 3'))
 
   var cb = function (e) {
-    test.equal(e, errs.shift(), "Error should be uncaught")
-    if (errs.length === 0) {
+    uncaughtErrors++
+    if (e === errs[2]) {
+      test.equal(uncaughtErrors, 3, "Errors should be uncaught")
       process.removeListener('uncaughtException', cb)
       test.done()
     }
@@ -275,7 +277,6 @@ exports.testChainedEndUncaught = function (test) {
   setTimeout(function () {
     defer.reject(errs[0])
   }, 10)
-
 }
 
 // test .end() is called with a parent scope and is caught
