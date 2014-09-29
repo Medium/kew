@@ -22,6 +22,12 @@ var callback = function (result) {};
 var callbackWithContext = function (result, context) {};
 
 /**
+ * @param {number} n
+ * @param {*} result
+ */
+var callbackNeedsBind = function (n, result) {};
+
+/**
 @param {Error} error
 */
 var errorCallback = function (error) {};
@@ -32,6 +38,11 @@ var errorCallback = function (error) {};
 */
 var errorCallbackWithContext = function (error, context) {};
 
+/** @return {kew.Promise.<string>} */
+var stringPromise = function () {
+  return kew.resolve('string')
+}
+
 var exampleThen = function () {
   var examplePromise = new Promise();
   examplePromise.then(callback);
@@ -40,6 +51,11 @@ var exampleThen = function () {
 
   examplePromise.then(null, errorCallback);
   examplePromise.then(null, errorCallbackWithContext);
+};
+
+
+var thenBound = function () {
+  stringPromise().thenBound(callbackNeedsBind, null, 3).failBound(callbackNeedsBind, null, 3);
 };
 
 var examplePromise = function () {

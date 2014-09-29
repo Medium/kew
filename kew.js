@@ -31,7 +31,7 @@ var nextTick = process.nextTick
  *
  * @param {Promise} defer
  * @param {Function} callback
- * @param {Object} scope
+ * @param {Object|undefined} scope
  * @param {Array} args
  */
 function nextTickCallback (defer, callback, scope, args) {
@@ -64,9 +64,13 @@ function setNextTickFunction (fn) {
  * Keep track of the number of promises that are rejected along side
  * the number of rejected promises we call _failFn on so we can look
  * for leaked rejections.
+ * @constructor
  */
 function PromiseStats() {
+  /** @type {number} */
   this.errorsEmitted = 0
+
+  /** @type {number} */
   this.errorsHandled = 0
 }
 
@@ -228,7 +232,7 @@ Promise.prototype.then = function (onSuccess, onFail) {
  * Provide a callback to be called whenever this promise successfully
  * resolves. The callback will be executed in the context of the provided scope.
  *
- * @param {function(this:SCOPE, T, ?): RESULT} onSuccess
+ * @param {function(this:SCOPE, ...): RESULT} onSuccess
  * @param {SCOPE} scope Object whose context callback will be executed in.
  * @param {...*} var_args Additional arguments to be passed to the promise callback.
  * @return {!Promise.<RESULT>} returns a new promise with the output of the onSuccess
@@ -264,7 +268,7 @@ Promise.prototype.fail = function (onFail) {
  * Provide a callback to be called whenever this promise is rejected.
  * The callback will be executed in the context of the provided scope.
  *
- * @param {function(this:SCOPE, Error, ?)} onFail
+ * @param {function(this:SCOPE, ...)} onFail
  * @param {SCOPE} scope Object whose context callback will be executed in.
  * @param {...?} var_args
  * @return {!Promise.<T>} returns a new promise with the output of the onSuccess
