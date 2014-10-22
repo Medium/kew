@@ -19,6 +19,12 @@ function Promise(onSuccess, onFail) {
   this._hasContext = false
   this._nextContext = undefined
   this._currentContext = undefined
+
+  this._creationStack = (new Error()).stack
+  this._resolvedTimeout = setTimeout(function () {
+    console.error('Promise unhandled after 45 seconds', this._creationStack)
+  }.bind(this), 45000)
+  this._resolvedTimeout.unref()
 }
 
 /**
@@ -28,8 +34,8 @@ function nextTick (callback) {
   callback()
 }
 
-if (typeof process !== 'undefined') {
-  nextTick = process.nextTick
+if (typeof setImmediate === 'function') {
+  nextTick = setImmediate
 }
 
 /**
@@ -137,6 +143,7 @@ Promise.prototype.getContext = function () {
  * @param {*=} data
  */
 Promise.prototype.resolve = function (data) {
+  clearTimeout(this._resolvedTimeout)
   if (this._error || this._hasData) throw new Error("Unable to resolve or reject the same promise twice")
 
   var i
@@ -186,6 +193,7 @@ Promise.prototype.resolve = function (data) {
  * @param {!Error} e
  */
 Promise.prototype.reject = function (e) {
+  clearTimeout(this._resolvedTimeout)
   if (this._error || this._hasData) throw new Error("Unable to resolve or reject the same promise twice")
 
   var i
@@ -339,6 +347,7 @@ Promise.prototype.end = function () {
  * @private
  */
 Promise.prototype._end = function () {
+  clearTimeout(this._resolvedTimeout)
   if (this._error) {
     this._handleError()
     throw this._error
@@ -453,6 +462,9 @@ Promise.prototype._nextTick = function (fn, args) {
 Promise.prototype._chainPromise = function (promise) {
   var i
   if (this._hasContext) promise._useContext(this._nextContext)
+
+  // Don't log timeouts for chained promises...
+  clearTimeout(promise._resolvedTimeout)
 
   if (this._child) {
     this._child._chainPromise(promise)
