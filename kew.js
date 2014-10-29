@@ -516,7 +516,8 @@ function isPromise(obj) {
  * @return {boolean} Whether the object is a promise-like object
  */
 function isPromiseLike(obj) {
-  return typeof obj === 'object' && typeof obj.then === 'function'
+  return (typeof obj === 'object' || typeof obj === 'function') &&
+    typeof obj.then === 'function'
 }
 
 /**

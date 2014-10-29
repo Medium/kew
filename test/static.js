@@ -359,8 +359,14 @@ exports.testIsPromiseLike = function (test) {
       fn('like a promise, brah!')
     }
   }
+  var kewLikeFunction = function() {}
+  kewLikeFunction.then = function(fn) {
+    fn('like a promise, brah!')
+  }
   test.equal(Q.isPromiseLike(kewPromise), true, 'A Kew promise is promise-like')
   test.equal(Q.isPromiseLike(qPromise), true, 'A Q promise is promise-like')
   test.equal(Q.isPromiseLike(kewLikeObject), true, 'A pretend promise is a promise-like')
+  test.equal(Q.isPromiseLike(kewLikeFunction), true, 'A pretend function promise is a promise-like')
+
   test.done()
 }
