@@ -212,7 +212,11 @@ exports.testDelay = function (test) {
     })
     .then(function (returnVal) {
       test.equal(returnVal, val, "Val should be passed through")
-      test.equal(Date.now() - startTime >= 1000, true, "Should have waited a second")
+
+      var diff = Date.now() - startTime
+
+      // clock granularity may be off by 15
+      test.equal(diff >= 1000 - 15, true, "Should have waited a second. Actually waited " + diff)
       test.done()
     })
 }

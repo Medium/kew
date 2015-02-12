@@ -1,6 +1,8 @@
 kew: a lightweight (and super fast) promise/deferred framework for node.js
 ==================================
 
+[![Build Status](https://travis-ci.org/Medium/kew.svg)](https://travis-ci.org/Medium/kew)
+
 **kew** is a lightweight promise framework with an aim of providing a base set of functionality similar to that provided by the [Q library](https://github.com/kriskowal/q "Q").
 
 A few answers (for a few questions)

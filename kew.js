@@ -62,7 +62,7 @@ function getNextTickFunction () {
 /**
  * Used for overriding the nextTick function from outside the kew module so that
  * the user can plug and play lower level schedulers
- * @param {Function} fn
+ * @param {!Function} fn
  */
 function setNextTickFunction (fn) {
   nextTick = fn
