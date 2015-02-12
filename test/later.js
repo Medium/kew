@@ -26,6 +26,11 @@ exports.testAsynchronousSynchronous = function (test) {
 }
 
 exports.testSetImmediate = function (test) {
+  if (typeof setImmediate == 'undefined') {
+    test.done()
+    return
+  }
+
   Q.setNextTickFunction(setImmediate)
 
   var number = 5
@@ -38,4 +43,3 @@ exports.testSetImmediate = function (test) {
     test.done()
   })
 }
-
