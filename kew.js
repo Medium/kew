@@ -299,6 +299,36 @@ Promise.prototype.failBound = function (onFail, scope, var_args) {
 }
 
 /**
+ * Spread a promises outputs to the functions arguments.
+ * @param {?function(this:void, ...): RESULT|undefined} onSuccess
+ * @return {!Promise.<RESULT>} returns a new promise with the output of the onSuccess or
+ *     onFail handler
+ * @template RESULT
+ */
+Promise.prototype.spread = function (onSuccess) {
+  return this.then(allInternal)
+  .then(function (array) {
+    return onSuccess.apply(null, array)
+  })
+}
+
+/**
+ * Spread a promises outputs to the functions arguments.
+ * @param {function(this:SCOPE, ...): RESULT} onSuccess
+ * @param {SCOPE} scope Object whose context callback will be executed in.
+ * @param {...*} var_args Additional arguments to be passed to the promise callback.
+ * @return {!Promise.<RESULT>} returns a new promise with the output of the onSuccess
+ * @template SCOPE, RESULT
+ */
+Promise.prototype.spreadBound = function (onSuccess, scope, var_args) {
+  var args = Array.prototype.slice.call(arguments, 2)
+  return this.then(allInternal)
+  .then(function (array) {
+    return onSuccess.apply(scope, args.concat(array))
+  })
+}
+
+/**
  * Provide a callback to be called whenever this promise is either resolved
  * or rejected.
  *
@@ -604,6 +634,16 @@ function all(promises) {
   if (arguments.length != 1 || !Array.isArray(promises)) {
     promises = Array.prototype.slice.call(arguments, 0)
   }
+  return allInternal(promises)
+}
+
+/**
+ * A version of all() that does not accept var_args
+ *
+ * @param {!Array.<!Promise>} promises
+ * @return {!Promise.<!Array>}
+ */
+function allInternal(promises) {
   if (!promises.length) return resolve([])
 
   var outputs = []
@@ -674,6 +714,15 @@ function allSettled(promises) {
   }
 
   return promise
+}
+
+/**
+ * Takes an array of results and spreads them to the arguments of a function.
+ * @param {!Array} array
+ * @param {!Function} fn
+ */
+function spread(array, fn) {
+  resolve(array).spread(fn)
 }
 
 /**
@@ -788,6 +837,7 @@ module.exports = {
   , nfcall: nfcall
   , resolve: resolve
   , reject: reject
+  , spread: spread
   , stats: stats
   , allSettled: allSettled
   , Promise: Promise
