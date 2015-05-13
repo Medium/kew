@@ -33,3 +33,27 @@ exports.testSpreadBoundMethod = function (test) {
         test.done()
       }, {scope: 'scope'}, 'c')
 }
+
+exports.testAllSynchronization1 = function (test) {
+  var order = []
+  Q.resolve(true)
+      .then(function () {
+        var promiseA = Q.fcall(function () {
+          order.push('a')
+        })
+        var promiseB = Q.fcall(function () {
+          order.push('b')
+        })
+
+        test.deepEqual([], order)
+
+        var promiseAB = Q.all([promiseA, promiseB])
+        test.deepEqual([], order)
+
+        return [promiseA, promiseB]
+      })
+      .then(function (results) {
+        test.deepEqual(['a', 'b'], order)
+        test.done()
+      })
+}
