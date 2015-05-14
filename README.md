@@ -268,6 +268,19 @@ Q.nfcall(fs.writeFile, '/tmp/myFile', 'content')
   })
 ```
 
+### `.spread()` for arrays of promises
+
+``()`` can be used to convert node-style callbacks into promises:
+
+```javascript
+Q.nfcall(function () {
+  return ['a', Q.resolve('b')]
+})
+.spread(function (a, b) { 
+  // ...
+})
+```
+
 
 Contributing
 ------------
