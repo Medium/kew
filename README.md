@@ -220,6 +220,38 @@ Q.all(promises)
   })
 ```
 
+### `.any()` for first of many things
+
+A common use-case is when you want to respond to the first promise that returns. In that case, you may pass them into `.any()` which will create a promise that resolves successfully with the result of the first resolved promise:
+
+```javascript
+var promises = []
+promises.push(getUrlContent(url1))
+promises.push(getUrlContent(url2))
+promises.push(getUrlContent(url3))
+
+Q.any(promises)
+  .then(function (content) {
+    // content === content from the first URL to be resolved
+  })
+```
+
+If all of the promises fail, Q.any will fail and return an array containing errors from each promise:
+
+```javascript
+var promises = []
+promises.push(getUrlContent(url1))
+promises.push(getUrlContent(url2))
+promises.push(getUrlContent(url3))
+
+Q.all(promises)
+  .fail(function (e) {
+    console.log("First URL Failed with the error message" + e[0])
+    console.log("Second URL Failed with the error message" + e[1])
+    console.log("Third URL Failed with the error message" + e[2])
+  })
+```
+
 ### `.delay()` for future promises
 
 If you need a little bit of delay (such as retrying a method call to a service that is "eventually consistent") before doing something else, ``Q.delay()`` is your friend:

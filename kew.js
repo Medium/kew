@@ -681,6 +681,60 @@ function allInternal(promises) {
 }
 
 /**
+ * Takes in an array of promises or literals and returns a promise that is 
+ * fulfilled by the first given promise to be fulfilled, or rejected if all of the 
+ * given promises are rejected.
+ *
+ * @param {!Array.<!Promise>} promises
+ * @return {!Promise}
+ */
+function any(promises) {
+  if (arguments.length != 1 || !Array.isArray(promises)) {
+    promises = Array.prototype.slice.call(arguments, 0)
+  }
+  return anyInternal(promises)
+}
+
+/**
+ * A version of any() that does not accept var_args
+ *
+ * @param {!Array.<!Promise>} promises
+ * @return {!Promise}
+ */
+function anyInternal(promises) {
+  if (!promises.length) return resolve(null)
+
+  var errorOutputs = []
+  var output = []
+  var finished = false
+  var promise = new Promise()
+  var counter = promises.length
+
+  for (var i = 0; i < promises.length; i += 1) {
+    if(finished) break;
+    if (!promises[i] || !isPromiseLike(promises[i])) {
+      promise.resolve(promises[i]);
+      break;
+    } else {
+      promises[i].then(replaceEl.bind(null, output, 0))
+      .then(function resolveFirstPromise() {
+            promise.resolve(output[0]);
+            finished = true;
+      }, function onAnyError(e) {
+            errorOutputs.push(e);
+            counter--
+        if (!finished && counter === 0) {
+          finished = true
+          promise.reject(errorOutputs)
+        }
+      })
+    }
+  }
+
+  return promise
+}
+
+/**
  * Takes in an array of promises or values and returns a promise that is
  * fulfilled with an array of state objects when all have resolved or
  * rejected. If a promise is resolved, its corresponding state object is
@@ -828,6 +882,7 @@ function bindPromise(fn, scope, var_args) {
 
 module.exports = {
     all: all
+  , any: any
   , bindPromise: bindPromise
   , defer: defer
   , delay: delay
