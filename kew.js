@@ -28,7 +28,7 @@ function nextTick (callback) {
   callback()
 }
 
-if (typeof process !== 'undefined') {
+if (typeof process !== 'undefined' && typeof process.nextTick === 'function') {
   nextTick = process.nextTick
 }
 
