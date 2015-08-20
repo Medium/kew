@@ -201,6 +201,157 @@ exports.testAllIsPromiseLike = function(test) {
     })
 }
 
+// test Q.any with an empty array
+exports.testQAnyEmptySuccess = function (test) {
+  var promises = []
+
+  // make sure nothing comes back
+  Q.any(promises)
+    .then(function (data) {
+      test.equal(data, null, "No records should be returned")
+      test.done()
+    })
+}
+
+// test Q.any with only literals
+exports.testQAnyLiteralsSuccess = function (test) {
+  var vals = [3, 2, 1]
+  var promises = []
+
+  promises.push(vals[0])
+  promises.push(vals[1])
+  promises.push(vals[2])
+
+  // make sure only one result comes back
+  Q.any(promises)
+    .then(function (data) {
+        test.notEqual(vals.indexOf(data), -1, "The first promise to resolve should be returned")
+        test.done()
+    })
+}
+
+// test Q.any with only promises
+exports.testQAnyPromisesSuccess = function (test) {
+  var vals = [3, 2, 1]
+  var promises = []
+
+  promises.push(Q.resolve(vals[0]))
+  promises.push(Q.resolve(vals[1]))
+  promises.push(Q.resolve(vals[2]))
+
+  // make sure only one result comes back
+  Q.any(promises)
+      .then(function (data) {
+        test.notEqual(vals.indexOf(data), -1, "The first promise to resolve should be returned")
+        test.done()
+      })
+}
+
+// create a promise which waits for other promises
+exports.testQAnyAssortedSuccess = function (test) {
+  var vals = [3, 2, 1]
+  var promises = []
+
+  // a promise that returns the value immediately
+  promises.push(Q.resolve(vals[0]))
+
+  // the value itself
+  promises.push(vals[1])
+
+  // a promise which returns in 10ms
+  var defer = Q.defer()
+  promises.push(defer.promise)
+  setTimeout(function () {
+    defer.resolve(vals[2])
+  }, 10)
+
+  // make sure only one result comes back
+  Q.any(promises)
+      .then(function (data) {
+        test.notEqual(vals.indexOf(data), -1, "The first promise to resolve should be returned")
+        test.done()
+      })
+}
+
+// test Q.any with a failing promise
+exports.testQAnyError = function (test) {
+  var vals = [3, 2, 1]
+  var err = new Error("hello")
+  var promises = []
+
+  var defer = Q.defer()
+  promises.push(defer.promise)
+  defer.reject(err)
+
+  promises.push(vals[0])
+  promises.push(vals[1])
+
+  // make sure only one result comes back
+  Q.any(promises)
+      .then(function (data) {
+        test.notEqual(vals.indexOf(data), -1, "The first promise to resolve should be returned")
+        test.done()
+      })
+}
+
+// test Q.any with all failing promises
+exports.testQAnyOnlyError = function (test) {
+  var err1 = new Error("hello")
+  var err2 = new Error("hola")
+  var promises = []
+
+  var defer = Q.defer()
+  promises.push(defer.promise)
+  defer.reject(err1)
+
+  var anotherDefer = Q.defer()
+  promises.push(anotherDefer.promise)
+  anotherDefer.reject(err2)
+
+  var errArray = [err1, err2];
+
+  // All errors are returned in an array
+  Q.any(promises)
+      .fail(function (e) {
+        test.equal(e[0], err1)
+        test.equal(e[1], err2)
+        test.done()
+      })
+}
+
+// test any var_args
+exports.testAnyVarArgs = function (test) {
+  var promises = ['a', 'b']
+
+  Q.any.apply(Q, promises)
+      .then(function (result) {
+        test.notEqual(promises.indexOf(result), -1, "The first promise to resolve should be returned")
+        test.done()
+      })
+}
+
+// test any array
+exports.testAnyArray = function (test) {
+  var promises = ['a', 'b']
+
+  Q.any(promises)
+      .then(function (result) {
+        test.notEqual(promises.indexOf(result), -1, "The first promise to resolve should be returned")
+        test.done()
+      })
+}
+
+exports.testAnyIsPromiseLike = function(test) {
+  var promises = [originalQ('b'), 'a']
+  var promisesResultTest = ['a', 'b'];
+
+  Q.any(promises)
+      .then(function (result) {
+        test.notEqual(promisesResultTest.indexOf(result), -1, "The first promise to resolve should be returned")
+        test.done()
+      })
+}
+
 // test delay
 exports.testDelay = function (test) {
   var val = "Hello, there"
