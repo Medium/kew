@@ -800,7 +800,20 @@ function nfcall(fn, var_args) {
   // Insert an undefined argument for scope and let bindPromise() do the work.
   var args = Array.prototype.slice.call(arguments, 0)
   args.splice(1, 0, undefined)
-  return bindPromise.apply(undefined, args)()
+  return ncall.apply(undefined, args)
+}
+
+
+/**
+ * Like `nfcall`, but permits passing a `this` context for the call.
+ *
+ * @param {function(...)} fn
+ * @param {Object} scope
+ * @param {...*} var_args
+ * @return {!Promise}
+ */
+function ncall(fn, scope, var_args) {
+  return bindPromise.apply(null, arguments)()
 }
 
 
@@ -827,20 +840,21 @@ function bindPromise(fn, scope, var_args) {
 }
 
 module.exports = {
-    all: all
-  , bindPromise: bindPromise
-  , defer: defer
-  , delay: delay
-  , fcall: fcall
-  , isPromise: isPromise
-  , isPromiseLike: isPromiseLike
-  , nfcall: nfcall
-  , resolve: resolve
-  , reject: reject
-  , spread: spread
-  , stats: stats
-  , allSettled: allSettled
-  , Promise: Promise
-  , getNextTickFunction: getNextTickFunction
-  , setNextTickFunction: setNextTickFunction
+  all: all,
+  bindPromise: bindPromise,
+  defer: defer,
+  delay: delay,
+  fcall: fcall,
+  isPromise: isPromise,
+  isPromiseLike: isPromiseLike,
+  ncall: ncall,
+  nfcall: nfcall,
+  resolve: resolve,
+  reject: reject,
+  spread: spread,
+  stats: stats,
+  allSettled: allSettled,
+  Promise: Promise,
+  getNextTickFunction: getNextTickFunction,
+  setNextTickFunction: setNextTickFunction,
 }
