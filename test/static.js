@@ -319,6 +319,23 @@ exports.testNFcallErrorSync = function (test) {
     })
 }
 
+exports.testNcall = function (test) {
+  function TwoAdder() {
+    this.a = 2
+  }
+  TwoAdder.prototype.add = function (num, callback) {
+    setTimeout(function () {
+      callback(null, this.a + num)
+    }.bind(this), 10)
+  }
+  var adder = new TwoAdder()
+  Q.ncall(adder.add, adder, 3)
+    .then(function (val) {
+      test.equal(val, 5, "Val should be 2 + 3")
+      test.done()
+    })
+}
+
 // test binding a callback function with a promise
 exports.testBindPromise = function (test) {
   var adder = function (a, b, callback) {
