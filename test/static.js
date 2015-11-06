@@ -1,6 +1,47 @@
 var Q = require('../kew')
 var originalQ = require('q')
 
+// Create a promise with .wrap()
+exports.testQWrapReturnPlainValue = function (test) {
+  Q.wrap(function () {
+    return 'ok'
+  })
+    .then(function (val) {
+      test.equal(val, 'ok', 'Promise successfully returned')
+      test.done()
+    })
+}
+
+// Create a rejected promise with .wrap()
+exports.testQWrapThrowPlainError = function (test) {
+  Q.wrap(function () {
+    throw new Error('bad')
+  })
+    .then(function () {
+      test.fail('Promise should not resolve')
+    }, function (err) {
+      test.ok(err, 'Promise should have rejected')
+      test.done()
+    })
+}
+
+// Create a bound promise with .wrap()
+exports.testQWrapBound = function (test) {
+  function A() {
+    this.x = 'ok'
+  }
+  A.prototype.getX = function () {
+    return Q.wrap(function () {
+      return this.x
+    }, this)
+  }
+
+  new A().getX().then(function (val) {
+    test.equal(val, 'ok', 'Promise should be properly bound')
+    test.done()
+  })
+}
+
 // create a promise from a literal
 exports.testQResolve = function (test) {
   var val = "ok"
