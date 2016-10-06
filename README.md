@@ -279,15 +279,13 @@ Q.ncall(redis.del, redis, 'my-key')
 
 ### `.spread()` for arrays of promises
 
-``()`` can be used to convert node-style callbacks into promises:
+``.spread()`` can be used to destructure an array promises from `Q.all()` into named arguments:
 
 ```javascript
-Q.nfcall(function () {
-  return ['a', Q.resolve('b')]
-})
-.spread(function (a, b) { 
-  // ...
-})
+Q.all(['a', Q.resolve('b')])
+  .spread(function (a, b) { 
+    // ...
+  })
 ```
 
 
