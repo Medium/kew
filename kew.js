@@ -839,22 +839,39 @@ function bindPromise(fn, scope, var_args) {
   }
 }
 
+
+/**
+ * Provide a more idiomatic way to immediately return a promise and ensure all
+ * subsequent code (e.g., top-level `throw`s) is promisified.
+ *
+ * @param {function(...)} fn
+ * @param {Object=} opt_thisArg
+ * @return {!Promise}
+ */
+function wrap(fn, opt_thisArg) {
+  return resolve(null).then(function () {
+    return fn.call(opt_thisArg)
+  })
+}
+
+
 module.exports = {
   all: all,
+  allSettled: allSettled,
   bindPromise: bindPromise,
   defer: defer,
   delay: delay,
   fcall: fcall,
+  getNextTickFunction: getNextTickFunction,
   isPromise: isPromise,
   isPromiseLike: isPromiseLike,
   ncall: ncall,
   nfcall: nfcall,
   resolve: resolve,
   reject: reject,
+  setNextTickFunction: setNextTickFunction,
   spread: spread,
   stats: stats,
-  allSettled: allSettled,
+  wrap: wrap,
   Promise: Promise,
-  getNextTickFunction: getNextTickFunction,
-  setNextTickFunction: setNextTickFunction,
 }
