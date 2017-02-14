@@ -407,8 +407,10 @@ Promise.prototype.done = function (onSuccess, onFailure) {
   var deferred = new Promise()
   var isTimeout = false
 
+  // Initialize the timeout here to capture better stack info
+  var timeoutErr = new Error(timeoutMsg || 'Promise timeout after ' + timeoutMs + ' ms.')
   var timeout = setTimeout(function() {
-    deferred.reject(new Error(timeoutMsg || 'Promise timeout after ' + timeoutMs + ' ms.'))
+    deferred.reject(timeoutErr)
     isTimeout = true
   }, timeoutMs)
 

@@ -421,6 +421,19 @@ exports.testNotTimeoutButReject = function(test) {
   .fin(test.done)
 }
 
+exports.testTimeoutCapturesSurroundingStack = function(test) {
+  function myCaller() {
+    return Q.delay(50).timeout(45, 'Timeout message')
+  }
+  myCaller().then(function () {
+    test.fail('The promise should have timed out')
+  })
+  .fail(function (err) {
+    test.ok(err.stack.indexOf('myCaller') > -1, 'The error trace should have the caller stack')
+  })
+  .fin(test.done)
+}
+
 exports.testDelay = function (test) {
   var timePassed = false
   setTimeout(function () {
