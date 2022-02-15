@@ -1,6 +1,10 @@
 const Q = require('../lib/kew')
 
 describe('kew', () => {
+  beforeEach(() => {
+    expect.hasAssertions()
+  })
+
   describe('resolve', () => {
     it('should return a promise', async () => {
       const val = Q.resolve(12)
@@ -405,6 +409,63 @@ describe('kew', () => {
         expect(dbMock).toHaveBeenCalledWith('userId=1')
         expect(err).toBeInstanceOf(Error)
         expect(err.message).toEqual('failed')
+      })
+    })
+  })
+
+  describe('bindPromise', () => {
+    const dbMock = jest.fn()
+    beforeEach(() => {
+      dbMock.mockClear()
+    })
+
+    it('should bind the function with the root arguments', () => {
+      const fn = (query, callback) => {
+        const res = dbMock(query)
+        if (res instanceof Error) {
+          callback(res, null)
+        } else {
+          callback(null, res)
+        }
+      }
+
+      dbMock.mockReturnValue({id: '1'})
+      const promised = query => Q.bindPromise(fn, undefined, query)()
+      return promised('userId=1').then(val => {
+        expect(val).toEqual({id: '1'})
+      })
+    })
+
+    it('should bind the function with the non-root arguments', () => {
+      const fn = (query, callback) => {
+        const res = dbMock(query)
+        if (res instanceof Error) {
+          callback(res, null)
+        } else {
+          callback(null, res)
+        }
+      }
+
+      dbMock.mockReturnValue({id: '1'})
+      const promised = query => Q.bindPromise(fn, undefined)(query)
+      return promised('userId=1').then(val => {
+        expect(val).toEqual({id: '1'})
+      })
+    })
+  })
+
+  describe('allSettled', () => {
+    it('should return the state object for each promises', () => {
+      const defer = Q.defer()
+      const promises = [Q.resolve(12), Q.reject(new Error('failed')), defer.promise]
+
+      setTimeout(() => defer.resolve('foo'), 100)
+      return Q.allSettled(promises).then(status => {
+        expect(status).toEqual([
+          {state: 'fulfilled', value: 12},
+          {state: 'rejected', reason: new Error('failed')},
+          {state: 'fulfilled', value: 'foo'},
+        ])
       })
     })
   })

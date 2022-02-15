@@ -10,6 +10,16 @@ type RejectedCb<TResult = never> =
   | undefined
   | null
 
+let nextTickFunction: Function = process.nextTick
+
+export function getNextTickFunction() {
+  return nextTickFunction
+}
+
+export function setNextTickFunction(fn: Function) {
+  nextTickFunction = fn
+}
+
 export class KewPromise<T> implements KewPromiseType<T> {
   constructor(private nativePromise: Promise<T>) {}
 
@@ -81,6 +91,19 @@ export function all(promises: KewPromise<any>[]) {
   return new KewPromise(Promise.all(promises))
 }
 
+export function allSettled(promises: KewPromise<any>[]) {
+  const promise = Promise.allSettled(promises).then(promises => {
+    return promises.map(p => {
+      if (p.status === 'fulfilled') {
+        return {state: 'fulfilled', value: p.value}
+      } else {
+        return {state: 'rejected', reason: p.reason}
+      }
+    })
+  })
+  return new KewPromise(promise)
+}
+
 export function delay(duration: number): KewPromise<void>
 export function delay<T>(returnValue: T, duration: number): KewPromise<T>
 export function delay<T>(arg1: number | T, arg2?: number) {
@@ -105,7 +128,7 @@ export function delay<T>(arg1: number | T, arg2?: number) {
 
 export function fcall<T>(fn: (...args: any[]) => T, ...args: any[]) {
   const deferred = defer<T>()
-  process.nextTick(() => {
+  nextTickFunction(() => {
     try {
       deferred.resolve(fn.apply(undefined, args))
     } catch (err) {
@@ -115,15 +138,21 @@ export function fcall<T>(fn: (...args: any[]) => T, ...args: any[]) {
   return deferred.promise
 }
 
-export function ncall<T>(fn: (...args: any[]) => T, thisObj: any, ...args: any[]) {
-  const deferred = defer<T>()
-  try {
-    const fnArgs = [...args, buildNodeResolver(deferred)]
-    fn.apply(thisObj, fnArgs)
-  } catch (err) {
-    deferred.reject(err)
+export function bindPromise<T>(fn: (...args: any[]) => T, thisObj: any, ...rootArgs: any[]) {
+  return function onBoundPromise(...args: any[]) {
+    const deferred = defer<T>()
+    try {
+      const fnArgs = [...rootArgs, ...args, buildNodeResolver(deferred)]
+      fn.apply(thisObj, fnArgs)
+    } catch (err) {
+      deferred.reject(err)
+    }
+    return deferred.promise
   }
-  return deferred.promise
+}
+
+export function ncall<T>(fn: (...args: any[]) => T, thisObj: any, ...args: any[]) {
+  return bindPromise(fn, thisObj, ...args)()
 }
 
 export function nfcall<T>(fn: (...args: any[]) => T, ...args: any[]) {
@@ -137,5 +166,21 @@ function buildNodeResolver<T>(deferred: KewDeferred<T>) {
     } else {
       deferred.resolve(data)
     }
+  }
+}
+
+export function isPromise(prom: any) {
+  return prom instanceof KewPromise
+}
+
+export function isPromiseLike(obj: any) {
+  return (typeof obj === 'object' || typeof obj === 'function') && typeof obj.then === 'function'
+}
+
+// kept for retro-compatibility, this lib should not be responsible of this
+export function stats() {
+  return {
+    errorsEmitted: 0,
+    errorsHandled: 0,
   }
 }
