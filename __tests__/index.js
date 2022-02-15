@@ -51,6 +51,27 @@ describe('kew', () => {
         expect(e.message).toEqual('failed')
       }
     })
+
+    describe('makeNodeResover', () => {
+      it('should reject if resolver is given an error', () => {
+        const defer = Q.defer()
+        defer.makeNodeResolver()(new Error('failed'), null)
+
+        return defer.promise.catch(err => {
+          expect(err).toBeInstanceOf(Error)
+          expect(err.message).toEqual('failed')
+        })
+      })
+
+      it('should resolve if resolver is not given any error', () => {
+        const defer = Q.defer()
+        defer.makeNodeResolver()(null, 'foo')
+
+        return defer.promise.then(val => {
+          expect(val).toEqual('foo')
+        })
+      })
+    })
   })
 
   describe('promise', () => {

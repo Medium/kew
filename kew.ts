@@ -4,12 +4,6 @@ interface KewPromiseType<T> extends Promise<T> {
   fin(finalCallback: (() => void) | null): KewPromise<T>
 }
 
-interface KewDeferred<T> {
-  resolve<T>(val: T): void
-  reject<T>(val: T): void
-  promise: KewPromise<T>
-}
-
 type FulfilledCb<T, TResult> = ((value: T) => TResult | PromiseLike<TResult>) | undefined | null
 type RejectedCb<TResult = never> =
   | ((reason: any) => TResult | PromiseLike<TResult>)
@@ -61,18 +55,26 @@ export function reject<T>(val: T): KewPromise<T> {
   return new KewPromise(Promise.reject(val))
 }
 
-export function defer<T>(): KewDeferred<T> {
-  let res!: <K = T>(val: K | PromiseLike<K>) => void
-  let rej!: <K = T>(val: K | PromiseLike<K>) => void
-  const promise = new Promise<T>((resolve, reject) => {
-    res = resolve as <K = T>(val: K) => void
-    rej = reject as <K = T>(val: K) => void
-  })
-  return {
-    resolve: res,
-    reject: rej,
-    promise: new KewPromise(promise),
+class KewDeferred<T> {
+  public promise: KewPromise<T>
+  public resolve!: <K = T>(val: K | PromiseLike<K>) => void
+  public reject!: <K = T>(val: K | PromiseLike<K>) => void
+
+  constructor() {
+    const promise = new Promise<T>((resolve, reject) => {
+      this.resolve = resolve as <K = T>(val: K) => void
+      this.reject = reject as <K = T>(val: K | PromiseLike<K>) => void
+    })
+    this.promise = new KewPromise(promise)
   }
+
+  public makeNodeResolver(): (error: any, data: T | undefined) => void {
+    return buildNodeResolver(this)
+  }
+}
+
+export function defer<T>(): KewDeferred<T> {
+  return new KewDeferred<T>()
 }
 
 export function all(promises: KewPromise<any>[]) {
@@ -116,7 +118,7 @@ export function fcall<T>(fn: (...args: any[]) => T, ...args: any[]) {
 export function ncall<T>(fn: (...args: any[]) => T, thisObj: any, ...args: any[]) {
   const deferred = defer<T>()
   try {
-    const fnArgs = [...args, makeNodeResolver(deferred)]
+    const fnArgs = [...args, buildNodeResolver(deferred)]
     fn.apply(thisObj, fnArgs)
   } catch (err) {
     deferred.reject(err)
@@ -128,8 +130,8 @@ export function nfcall<T>(fn: (...args: any[]) => T, ...args: any[]) {
   return ncall(fn, undefined, ...args)
 }
 
-function makeNodeResolver<T>(deferred: KewDeferred<T>) {
-  return (err: Error | undefined, data: T) => {
+function buildNodeResolver<T>(deferred: KewDeferred<T>) {
+  return (err: any, data: T | undefined) => {
     if (err) {
       deferred.reject(err)
     } else {
