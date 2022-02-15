@@ -2,6 +2,7 @@ interface KewPromiseType<T> extends Promise<T> {
   fail(err: any): KewPromiseType<T>
   end(): void
   fin(finalCallback: (() => void) | null): KewPromise<T>
+  timeout(timeoutMs: number, timeoutMsg?: string): KewPromise<T>
 }
 
 type FulfilledCb<T, TResult> = ((value: T) => TResult | PromiseLike<TResult>) | undefined | null
@@ -42,6 +43,7 @@ export class KewPromise<T> implements KewPromiseType<T> {
 
   // no-op, kept for backward-compatibility
   public end() {}
+  public done() {}
 
   public finally(finalCallback: (() => void) | null): KewPromise<T> {
     const onFinally = (cb: any) => {
@@ -55,6 +57,33 @@ export class KewPromise<T> implements KewPromiseType<T> {
   }
 
   public fin = this.finally
+
+  public timeout(timeoutMs: number, timeoutMsg?: string) {
+    const deferred = defer<T>()
+    let hasTimeout = false
+
+    const timeoutId = setTimeout(() => {
+      hasTimeout = true
+      deferred.reject(new Error(timeoutMsg ?? `Promise timeout after ${timeoutMs} ms.`))
+    }, timeoutMs)
+
+    this.nativePromise.then(
+      data => {
+        if (!hasTimeout) {
+          clearTimeout(timeoutId)
+          deferred.resolve(data)
+        }
+      },
+      err => {
+        if (!hasTimeout) {
+          clearTimeout(timeoutId)
+          deferred.reject(err)
+        }
+      }
+    )
+
+    return deferred.promise
+  }
 }
 
 export function resolve<T>(val: T): KewPromise<T> {

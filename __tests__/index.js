@@ -239,6 +239,24 @@ describe('kew', () => {
           })
       })
     })
+
+    describe('timeout', () => {
+      it('should do nothing if the task finishes before the timeout', () => {
+        const deferred = Q.defer()
+        setTimeout(() => deferred.resolve('foo'), 50)
+        return deferred.promise.timeout(500, 'too long to complete').then(val => {
+          expect(val).toEqual('foo')
+        })
+      })
+
+      it('should reject is the task is longer than the timeout', () => {
+        const deferred = Q.defer()
+        setTimeout(() => deferred.resolve('foo'), 100)
+        return deferred.promise.timeout(50, 'too long to complete').catch(err => {
+          expect(err).toEqual(new Error('too long to complete'))
+        })
+      })
+    })
   })
 
   describe('all', () => {
