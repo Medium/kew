@@ -17,7 +17,7 @@
     "kew",
     "promises"
   ],
-  "main": "./kew.js",
+  "main": "./lib/kew.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/Medium/kew.git"
