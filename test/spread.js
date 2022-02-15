@@ -1,4 +1,4 @@
-var Q = require('../kew')
+var Q = require('../lib/kew')
 
 exports.testSpreadStatic = function (test) {
   Q.spread([Q.resolve('a'), 'b'], function (a, b) {

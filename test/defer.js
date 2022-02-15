@@ -1,4 +1,4 @@
-var Q = require('../kew')
+var Q = require('../lib/kew')
 
 // create a deferred which returns a promise
 exports.testDeferredResolve = function (test) {

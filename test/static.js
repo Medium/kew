@@ -1,4 +1,4 @@
-var Q = require('../kew')
+var Q = require('../lib/kew')
 var originalQ = require('q')
 
 // create a promise from a literal

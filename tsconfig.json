@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "outDir": "lib",
+    "module": "commonjs",
+    "target": "es2016",
+    "lib": [
+      "es2016",
+    ],
+    "moduleResolution": "node",
+	 "esModuleInterop": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noImplicitAny": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "noUnusedLocals": true,
+	 "skipLibCheck": true
+  },
+  "include": ["kew.ts"]
+}

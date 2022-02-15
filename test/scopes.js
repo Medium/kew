@@ -1,4 +1,4 @@
-var Q = require('../kew')
+var Q = require('../lib/kew')
 
 exports.testThen = function (test) {
   var detectedScope = null

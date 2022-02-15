@@ -2,7 +2,7 @@
  * @fileoverview A sample file to test type-checking
  */
 
-var kew = require('../kew')
+var kew = require('../lib/kew')
 var Promise = kew.Promise
 var all = kew.all
 var allSettled = kew.allSettled

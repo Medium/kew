@@ -1,4 +1,4 @@
-var Q = require('../kew')
+var Q = require('../lib/kew')
 
 function synchronous (callback) {
   callback()

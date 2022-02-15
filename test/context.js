@@ -1,4 +1,4 @@
-var Q = require('../kew')
+var Q = require('../lib/kew')
 
 // test that contexts are propogated based on position
 exports.testContextWithDelay = function (test) {
