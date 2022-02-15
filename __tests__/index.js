@@ -257,6 +257,54 @@ describe('kew', () => {
         })
       })
     })
+
+    describe('bound callbacks', () => {
+      const successMock = jest.fn()
+      const errorMock = jest.fn()
+
+      beforeEach(() => {
+        successMock.mockClear()
+        errorMock.mockClear()
+      })
+
+      function Obj() {
+        this.attr = 'foo'
+      }
+      Obj.prototype.logSuccess = function (span, data) {
+        successMock(`span: ${span}, attr: ${this.attr} succeed with ${data}`)
+      }
+      Obj.prototype.logFailure = function (span, err) {
+        errorMock(`span: ${span}, attr: ${this.attr} failed with ${err.message}`)
+      }
+
+      test('thenBound', () => {
+        const obj = new Obj()
+        const span = 'fetchUser'
+        return Q.resolve('username')
+          .thenBound(obj.logSuccess, obj, span)
+          .failBound(obj.logFailure, obj, span)
+          .then(() => {
+            expect(successMock).toHaveBeenCalledWith(
+              `span: fetchUser, attr: foo succeed with username`
+            )
+            expect(errorMock).not.toHaveBeenCalled()
+          })
+      })
+
+      test('failBound', () => {
+        const obj = new Obj()
+        const span = 'fetchUser'
+        return Q.reject(new Error('not found'))
+          .thenBound(obj.logSuccess, obj, span)
+          .failBound(obj.logFailure, obj, span)
+          .then(() => {
+            expect(successMock).not.toHaveBeenCalled()
+            expect(errorMock).toHaveBeenCalledWith(
+              `span: fetchUser, attr: foo failed with not found`
+            )
+          })
+      })
+    })
   })
 
   describe('all', () => {

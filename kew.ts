@@ -3,6 +3,8 @@ interface KewPromiseType<T> extends Promise<T> {
   end(): void
   fin(finalCallback: (() => void) | null): KewPromise<T>
   timeout(timeoutMs: number, timeoutMsg?: string): KewPromise<T>
+  thenBound(onFulfilled: (...args: any[]) => any, thisObj: any, ...args: any[]): KewPromise<T>
+  failBound(onRejected: (...args: any[]) => any, thisObj: any, ...args: any[]): KewPromise<T>
 }
 
 type FulfilledCb<T, TResult> = ((value: T) => TResult | PromiseLike<TResult>) | undefined | null
@@ -39,6 +41,22 @@ export class KewPromise<T> implements KewPromiseType<T> {
 
   public fail<TResult = never>(onRejected?: RejectedCb<TResult>): KewPromise<T | TResult> {
     return new KewPromise(this.nativePromise.catch(onRejected))
+  }
+
+  public thenBound(onFulfilled: (...args: any[]) => any, thisObj: any, ...args: any[]) {
+    return new KewPromise(
+      this.nativePromise.then(data => {
+        return onFulfilled.apply(thisObj, [...args, data])
+      })
+    )
+  }
+
+  public failBound(onRejected: (...args: any[]) => any, thisObj: any, ...args: any[]) {
+    return new KewPromise(
+      this.nativePromise.catch(err => {
+        return onRejected.apply(thisObj, [...args, err])
+      })
+    )
   }
 
   // no-op, kept for backward-compatibility
