@@ -117,7 +117,7 @@ class KewDeferred<T> implements KewPromiseType<T> {
   public resolve!: <K = T>(val: K | PromiseLike<K>) => void
   public reject!: <K = T>(val: K | PromiseLike<K>) => void
 
-  // Proxy all other methods to the underlying promise to implements its interface
+  // Proxy all other methods to the underlying promise to implement its interface
   public then: typeof this.promise.then
   public catch: typeof this.promise.catch
   public fail: typeof this.promise.fail

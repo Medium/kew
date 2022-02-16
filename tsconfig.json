@@ -7,7 +7,7 @@
       "es2016",
     ],
     "moduleResolution": "node",
-	 "esModuleInterop": true,
+    "esModuleInterop": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,
@@ -16,7 +16,7 @@
     "noImplicitAny": true,
     "suppressImplicitAnyIndexErrors": true,
     "noUnusedLocals": true,
-	 "skipLibCheck": true
+    "skipLibCheck": true
   },
   "include": ["kew.ts"]
 }
