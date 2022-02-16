@@ -112,10 +112,23 @@ export function reject<T>(val: T): KewPromise<T> {
   return new KewPromise(Promise.reject(val))
 }
 
-class KewDeferred<T> {
+class KewDeferred<T> implements KewPromiseType<T> {
   public promise: KewPromise<T>
   public resolve!: <K = T>(val: K | PromiseLike<K>) => void
   public reject!: <K = T>(val: K | PromiseLike<K>) => void
+
+  // Proxy all other methods to the underlying promise to implements its interface
+  public then: typeof this.promise.then
+  public catch: typeof this.promise.catch
+  public fail: typeof this.promise.fail
+  public thenBound: typeof this.promise.thenBound
+  public failBound: typeof this.promise.failBound
+  public timeout: typeof this.promise.timeout
+  public done: typeof this.promise.done
+  public end: typeof this.promise.end
+  public finally: typeof this.promise.finally
+  public fin: typeof this.promise.fin
+  public readonly [Symbol.toStringTag]: string
 
   constructor() {
     const promise = new Promise<T>((resolve, reject) => {
@@ -123,6 +136,18 @@ class KewDeferred<T> {
       this.reject = reject as <K = T>(val: K | PromiseLike<K>) => void
     })
     this.promise = new KewPromise(promise)
+
+    this.then = this.promise.then.bind(this.promise)
+    this.catch = this.promise.catch.bind(this.promise)
+    this.fail = this.promise.fail.bind(this.promise)
+    this.thenBound = this.promise.thenBound.bind(this.promise)
+    this.failBound = this.promise.failBound.bind(this.promise)
+    this.timeout = this.promise.timeout.bind(this.promise)
+    this.done = this.promise.done.bind(this.promise)
+    this.end = this.promise.end.bind(this.promise)
+    this.finally = this.promise.finally.bind(this.promise)
+    this.fin = this.promise.fin.bind(this.promise)
+    this[Symbol.toStringTag] = this.promise[Symbol.toStringTag]
   }
 
   public makeNodeResolver(): (error: any, data: T | undefined) => void {

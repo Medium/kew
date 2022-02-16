@@ -78,182 +78,213 @@ describe('kew', () => {
     })
   })
 
-  describe('promise', () => {
-    test('then', () => {
-      const p = Q.resolve('foo')
-      return p.then(x => {
-        expect(x).toEqual('foo')
+  describe('promise interface', () => {
+    describe('then', () => {
+      testOnPromiseAndDefer({value: 'foo'}, promise => {
+        return promise.then(x => {
+          expect(x).toEqual('foo')
+        })
       })
     })
 
-    test('catch', () => {
-      const p = Q.reject('err')
-      return p.catch(x => {
-        expect(x).toEqual('err')
+    describe('catch', () => {
+      testOnPromiseAndDefer({reason: 'err'}, p => {
+        return p.catch(x => {
+          expect(x).toEqual('err')
+        })
       })
     })
 
-    test('fail', () => {
-      const p = Q.reject('err')
-      return p.fail(x => {
-        expect(x).toEqual('err')
+    describe('fail', () => {
+      testOnPromiseAndDefer({reason: 'err'}, p => {
+        return p.fail(x => {
+          expect(x).toEqual('err')
+        })
       })
     })
 
-    test('chaining', () => {
-      const p = Q.resolve('foo')
-      return p
-        .then(val => {
-          expect(val).toEqual('foo')
-          return val.length
-        })
-        .then(val => {
-          expect(val).toEqual(3)
-          return {bli: 'bar'}
-        })
-        .then(({bli}) => {
-          expect(bli).toEqual('bar')
-        })
+    describe('chaining', () => {
+      testOnPromiseAndDefer({value: 'foo'}, p => {
+        return p
+          .then(val => {
+            expect(val).toEqual('foo')
+            return val.length
+          })
+          .then(val => {
+            expect(val).toEqual(3)
+            return {bli: 'bar'}
+          })
+          .then(({bli}) => {
+            expect(bli).toEqual('bar')
+          })
+      })
     })
 
-    test('chaining while returning promises', () => {
-      const p = Q.resolve('foo')
-      return p
-        .then(val => {
-          expect(val).toEqual('foo')
-          return Q.resolve('bar')
-        })
-        .then(val => {
-          expect(val).toEqual('bar')
-          return val
-        })
-        .then(val => {
-          expect(val).toEqual('bar')
-          return Promise.resolve(12)
-        })
-        .then(val => {
-          expect(val).toEqual(12)
-        })
+    describe('chaining while returning promises', () => {
+      testOnPromiseAndDefer({value: 'foo'}, p => {
+        return p
+          .then(val => {
+            expect(val).toEqual('foo')
+            return Q.resolve('bar')
+          })
+          .then(val => {
+            expect(val).toEqual('bar')
+            return val
+          })
+          .then(val => {
+            expect(val).toEqual('bar')
+            return Promise.resolve(12)
+          })
+          .then(val => {
+            expect(val).toEqual(12)
+          })
+      })
     })
 
-    test('chaining with fail', () => {
-      const p = Q.reject('err')
-      return p
-        .fail(e => {
-          expect(e).toEqual('err')
-          return 12
-        })
-        .then(val => {
-          expect(val).toEqual(12)
-          return Q.reject('err again')
-        })
-        .fail(e => {
-          expect(e).toEqual('err again')
-        })
+    describe('chaining with fail', () => {
+      testOnPromiseAndDefer({reason: 'err'}, p => {
+        return p
+          .fail(e => {
+            expect(e).toEqual('err')
+            return 12
+          })
+          .then(val => {
+            expect(val).toEqual(12)
+            return Q.reject('err again')
+          })
+          .fail(e => {
+            expect(e).toEqual('err again')
+          })
+      })
     })
 
-    test('chaining with catch', () => {
-      const p = Q.reject('err')
-      return p
-        .catch(e => {
-          expect(e).toEqual('err')
-          return 12
-        })
-        .then(val => {
-          expect(val).toEqual(12)
-          return Q.reject('err again')
-        })
-        .catch(e => {
-          expect(e).toEqual('err again')
-        })
+    describe('chaining with catch', () => {
+      testOnPromiseAndDefer({reason: 'err'}, p => {
+        return p
+          .catch(e => {
+            expect(e).toEqual('err')
+            return 12
+          })
+          .then(val => {
+            expect(val).toEqual(12)
+            return Q.reject('err again')
+          })
+          .catch(e => {
+            expect(e).toEqual('err again')
+          })
+      })
     })
 
     describe('finally', () => {
-      test('after success', () => {
-        const p = Q.resolve(12)
-        const thenCb = jest.fn()
-        const failCb = jest.fn()
-        const finalCb = jest.fn()
+      describe('after success', () => {
+        testOnPromiseAndDefer({value: 12}, p => {
+          const thenCb = jest.fn()
+          const failCb = jest.fn()
+          const finalCb = jest.fn()
 
-        return p
-          .then(thenCb)
-          .catch(failCb)
-          .finally(finalCb)
-          .then(() => {
-            expect(thenCb).toHaveBeenCalledWith(12)
-            expect(failCb).not.toHaveBeenCalled()
-            expect(finalCb).toHaveBeenCalled()
-          })
+          return p
+            .then(thenCb)
+            .catch(failCb)
+            .finally(finalCb)
+            .then(() => {
+              expect(thenCb).toHaveBeenCalledWith(12)
+              expect(failCb).not.toHaveBeenCalled()
+              expect(finalCb).toHaveBeenCalled()
+            })
+        })
       })
 
-      test('after failure', () => {
-        const p = Q.reject(new Error('failed'))
-        const thenCb = jest.fn()
-        const failCb = jest.fn()
-        const finalCb = jest.fn()
+      describe('after failure', () => {
+        testOnPromiseAndDefer({reason: new Error('failed')}, p => {
+          const thenCb = jest.fn()
+          const failCb = jest.fn()
+          const finalCb = jest.fn()
 
-        return p
-          .then(thenCb)
-          .catch(failCb)
-          .finally(finalCb)
-          .then(() => {
-            expect(thenCb).not.toHaveBeenCalled()
-            expect(failCb).toHaveBeenCalled()
-            expect(finalCb).toHaveBeenCalled()
-          })
+          return p
+            .then(thenCb)
+            .catch(failCb)
+            .finally(finalCb)
+            .then(() => {
+              expect(thenCb).not.toHaveBeenCalled()
+              expect(failCb).toHaveBeenCalled()
+              expect(finalCb).toHaveBeenCalled()
+            })
+        })
       })
     })
 
     describe('fin', () => {
-      test('after success', () => {
-        const p = Q.resolve(12)
-        const thenCb = jest.fn()
-        const failCb = jest.fn()
-        const finalCb = jest.fn()
+      describe('after success', () => {
+        testOnPromiseAndDefer({value: 12}, p => {
+          const thenCb = jest.fn()
+          const failCb = jest.fn()
+          const finalCb = jest.fn()
 
-        return p
-          .then(thenCb)
-          .catch(failCb)
-          .fin(finalCb)
-          .then(() => {
-            expect(thenCb).toHaveBeenCalledWith(12)
-            expect(failCb).not.toHaveBeenCalled()
-            expect(finalCb).toHaveBeenCalled()
-          })
+          return p
+            .then(thenCb)
+            .catch(failCb)
+            .fin(finalCb)
+            .then(() => {
+              expect(thenCb).toHaveBeenCalledWith(12)
+              expect(failCb).not.toHaveBeenCalled()
+              expect(finalCb).toHaveBeenCalled()
+            })
+        })
       })
 
-      test('after failure', () => {
-        const p = Q.reject(new Error('failed'))
-        const thenCb = jest.fn()
-        const failCb = jest.fn()
-        const finalCb = jest.fn()
+      describe('after failure', () => {
+        testOnPromiseAndDefer({reason: new Error('failed')}, p => {
+          const thenCb = jest.fn()
+          const failCb = jest.fn()
+          const finalCb = jest.fn()
 
-        return p
-          .then(thenCb)
-          .catch(failCb)
-          .fin(finalCb)
-          .then(() => {
-            expect(thenCb).not.toHaveBeenCalled()
-            expect(failCb).toHaveBeenCalled()
-            expect(finalCb).toHaveBeenCalled()
-          })
+          return p
+            .then(thenCb)
+            .catch(failCb)
+            .fin(finalCb)
+            .then(() => {
+              expect(thenCb).not.toHaveBeenCalled()
+              expect(failCb).toHaveBeenCalled()
+              expect(finalCb).toHaveBeenCalled()
+            })
+        })
       })
     })
 
     describe('timeout', () => {
-      it('should do nothing if the task finishes before the timeout', () => {
-        const deferred = Q.defer()
-        setTimeout(() => deferred.resolve('foo'), 50)
-        return deferred.promise.timeout(500, 'too long to complete').then(val => {
-          expect(val).toEqual('foo')
+      describe('should do nothing if the task finishes before the timeout', () => {
+        test('promise', () => {
+          const deferred = Q.defer()
+          setTimeout(() => deferred.resolve('foo'), 50)
+          return deferred.promise.timeout(500, 'too long to complete').then(val => {
+            expect(val).toEqual('foo')
+          })
+        })
+
+        test('defer', () => {
+          const deferred = Q.defer()
+          setTimeout(() => deferred.resolve('foo'), 50)
+          return deferred.timeout(500, 'too long to complete').then(val => {
+            expect(val).toEqual('foo')
+          })
         })
       })
 
-      it('should reject is the task is longer than the timeout', () => {
-        const deferred = Q.defer()
-        setTimeout(() => deferred.resolve('foo'), 100)
-        return deferred.promise.timeout(50, 'too long to complete').catch(err => {
-          expect(err).toEqual(new Error('too long to complete'))
+      describe('should reject is the task is longer than the timeout', () => {
+        test('promise', () => {
+          const deferred = Q.defer()
+          setTimeout(() => deferred.resolve('foo'), 100)
+          return deferred.promise.timeout(50, 'too long to complete').catch(err => {
+            expect(err).toEqual(new Error('too long to complete'))
+          })
+        })
+
+        test('defer', () => {
+          const deferred = Q.defer()
+          setTimeout(() => deferred.resolve('foo'), 100)
+          return deferred.timeout(50, 'too long to complete').catch(err => {
+            expect(err).toEqual(new Error('too long to complete'))
+          })
         })
       })
     })
@@ -277,32 +308,36 @@ describe('kew', () => {
         errorMock(`span: ${span}, attr: ${this.attr} failed with ${err.message}`)
       }
 
-      test('thenBound', () => {
-        const obj = new Obj()
-        const span = 'fetchUser'
-        return Q.resolve('username')
-          .thenBound(obj.logSuccess, obj, span)
-          .failBound(obj.logFailure, obj, span)
-          .then(() => {
-            expect(successMock).toHaveBeenCalledWith(
-              `span: fetchUser, attr: foo succeed with username`
-            )
-            expect(errorMock).not.toHaveBeenCalled()
-          })
+      describe('thenBound', () => {
+        testOnPromiseAndDefer({value: 'username'}, promise => {
+          const obj = new Obj()
+          const span = 'fetchUser'
+          return promise
+            .thenBound(obj.logSuccess, obj, span)
+            .failBound(obj.logFailure, obj, span)
+            .then(() => {
+              expect(successMock).toHaveBeenCalledWith(
+                `span: fetchUser, attr: foo succeed with username`
+              )
+              expect(errorMock).not.toHaveBeenCalled()
+            })
+        })
       })
 
-      test('failBound', () => {
-        const obj = new Obj()
-        const span = 'fetchUser'
-        return Q.reject(new Error('not found'))
-          .thenBound(obj.logSuccess, obj, span)
-          .failBound(obj.logFailure, obj, span)
-          .then(() => {
-            expect(successMock).not.toHaveBeenCalled()
-            expect(errorMock).toHaveBeenCalledWith(
-              `span: fetchUser, attr: foo failed with not found`
-            )
-          })
+      describe('failBound', () => {
+        testOnPromiseAndDefer({reason: new Error('not found')}, promise => {
+          const obj = new Obj()
+          const span = 'fetchUser'
+          return promise
+            .thenBound(obj.logSuccess, obj, span)
+            .failBound(obj.logFailure, obj, span)
+            .then(() => {
+              expect(successMock).not.toHaveBeenCalled()
+              expect(errorMock).toHaveBeenCalledWith(
+                `span: fetchUser, attr: foo failed with not found`
+              )
+            })
+        })
       })
     })
   })
@@ -536,3 +571,25 @@ describe('kew', () => {
     })
   })
 })
+
+/**
+ * Allow to run all tests on a promise and a deferred, because deferred are also used as if they were a promise
+ * @param {*} options Object containing attribute "value" for a resolved promised or "reason" for a rejected one
+ * @param {*} callback function receiving the built promise, containing the test code
+ */
+function testOnPromiseAndDefer(options, callback) {
+  test('promise', () => {
+    const promise = options.value ? Q.resolve(options.value) : Q.reject(options.reason)
+    return callback(promise)
+  })
+
+  test('deferred', () => {
+    const deferred = Q.defer()
+    if (options.value) {
+      deferred.resolve(options.value)
+    } else {
+      deferred.reject(options.reason)
+    }
+    return callback(deferred)
+  })
+}
