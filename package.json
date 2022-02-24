@@ -1,7 +1,10 @@
 {
   "name": "kew",
   "description": "a lightweight promise library for node",
-  "version": "0.7.0",
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=12.0.0"
+  },
   "homepage": "https://github.com/Medium/kew",
   "authors": [
     "Jeremy Stanley <github@azulus.com> (https://github.com/azulus)",
@@ -14,18 +17,20 @@
     "kew",
     "promises"
   ],
-  "main": "./kew.js",
+  "main": "./lib/kew.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/Medium/kew.git"
   },
   "dependencies": {},
   "devDependencies": {
-    "q": "0.9.7",
-    "nodeunit": "0.9.0",
-    "closure-npc": "0.1.5"
+    "@types/jest": "^27.4.0",
+    "jest": "^27.5.1",
+    "prettier": "^2.5.1",
+    "typescript": "^4.5.5"
   },
   "scripts": {
-    "test": "nodeunit test && closure-npc ./test/closure_test.js --jscomp_error=checkTypes"
+    "build": "tsc",
+    "test": "jest"
   }
 }
