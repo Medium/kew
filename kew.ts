@@ -60,8 +60,14 @@ export class KewPromise<T> implements KewPromiseType<T> {
   }
 
   // no-op, kept for backward-compatibility
-  public end() {}
-  public done() {}
+  public end() {
+    return this
+  }
+
+  // no-op, kept for backward-compatibility
+  public done() {
+    return this
+  }
 
   public finally(finalCallback: (() => void) | null): KewPromise<T> {
     const onFinally = (cb: any) => {
@@ -131,11 +137,12 @@ class KewDeferred<T> implements KewPromiseType<T> {
   public readonly [Symbol.toStringTag]: string
 
   constructor() {
-    const promise = new Promise<T>((resolve, reject) => {
-      this.resolve = resolve as <K = T>(val: K) => void
-      this.reject = reject as <K = T>(val: K | PromiseLike<K>) => void
-    })
-    this.promise = new KewPromise(promise)
+    this.promise = new KewPromise(
+      new Promise<T>((resolve, reject) => {
+        this.resolve = resolve as <K = T>(val: K) => void
+        this.reject = reject as <K = T>(val: K | PromiseLike<K>) => void
+      })
+    )
 
     this.then = this.promise.then.bind(this.promise)
     this.catch = this.promise.catch.bind(this.promise)
