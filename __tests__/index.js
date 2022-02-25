@@ -340,6 +340,86 @@ describe('kew', () => {
         })
       })
     })
+
+    describe('end', () => {
+      describe('should return the underlying promise', () => {
+        describe('promise', () => {
+          test('success', () => {
+            const p = Q.resolve(12)
+            expect(p.end()).toStrictEqual(p)
+          })
+
+          test('failure', () => {
+            const p = Q.reject(new Error('failed'))
+            const p2 = p.end()
+            expect(p2).toStrictEqual(p)
+            // jest is not happy if the rejection is not caught here
+            return p.catch(() => null)
+          })
+        })
+
+        describe('deferred', () => {
+          test('without resolving', () => {
+            const def = Q.defer()
+            expect(def.end()).toStrictEqual(def.promise)
+          })
+
+          test('resolving', () => {
+            const def = Q.defer()
+            def.resolve(12)
+            expect(def.end()).toStrictEqual(def.promise)
+          })
+
+          test('rejecting', () => {
+            const def = Q.defer()
+            def.reject(new Error('failed'))
+            expect(def.end()).toStrictEqual(def.promise)
+            // jest is not happy if the rejection is not caught here
+            return def.catch(() => null)
+          })
+        })
+      })
+    })
+
+    describe('done', () => {
+      describe('should return the underlying promise', () => {
+        describe('promise', () => {
+          test('success', () => {
+            const p = Q.resolve(12)
+            expect(p.done()).toStrictEqual(p)
+          })
+
+          test('failure', () => {
+            const p = Q.reject(new Error('failed'))
+            const p2 = p.done()
+            expect(p2).toStrictEqual(p)
+            // jest is not happy if the rejection is not caught here
+            return p.catch(() => null)
+          })
+        })
+
+        describe('deferred', () => {
+          test('without resolving', () => {
+            const def = Q.defer()
+            expect(def.done()).toStrictEqual(def.promise)
+          })
+
+          test('resolving', () => {
+            const def = Q.defer()
+            def.resolve(12)
+            expect(def.done()).toStrictEqual(def.promise)
+          })
+
+          test('rejecting', () => {
+            const def = Q.defer()
+            def.reject(new Error('failed'))
+            expect(def.done()).toStrictEqual(def.promise)
+            // jest is not happy if the rejection is not caught here
+            return def.catch(() => null)
+          })
+        })
+      })
+    })
   })
 
   describe('all', () => {
