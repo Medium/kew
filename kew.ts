@@ -28,6 +28,10 @@ export class KewPromise<T> implements KewPromiseType<T> {
 
   public readonly [Symbol.toStringTag] = this.nativePromise[Symbol.toStringTag]
 
+  public get promise(): KewPromise<T> {
+    return this
+  }
+
   public then<TResult1 = T, TResult2 = never>(
     onFulfilled?: FulfilledCb<T, TResult1>,
     onRejected?: RejectedCb<TResult2>

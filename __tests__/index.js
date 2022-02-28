@@ -79,6 +79,24 @@ describe('kew', () => {
   })
 
   describe('promise interface', () => {
+    describe('promise attribute', () => {
+      test('resolved', () => {
+        const p = Q.resolve(12)
+        expect(p.promise).toStrictEqual(p)
+      })
+
+      test('rejected', () => {
+        const p = Q.reject(new Error('failed'))
+        expect(p.promise).toStrictEqual(p)
+        p.catch(() => null)
+      })
+
+      test('deferred', () => {
+        const d = Q.defer()
+        expect(d.promise.promise).toStrictEqual(d.promise)
+      })
+    })
+
     describe('then', () => {
       testOnPromiseAndDefer({value: 'foo'}, promise => {
         return promise.then(x => {
