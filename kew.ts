@@ -200,8 +200,17 @@ export function defer<T>(): KewDeferred<T> {
   return new KewDeferred<T>()
 }
 
-export function all(promises: KewPromise<any>[]) {
-  return new KewPromise(Promise.all(promises))
+export function all(
+  promises: KewPromise<any>[] | KewPromise<any>,
+  ...restPromises: KewPromise<any>[]
+) {
+  let arr: KewPromise<any>[]
+  if (Array.isArray(promises)) {
+    arr = promises
+  } else {
+    arr = [promises, ...restPromises]
+  }
+  return new KewPromise(Promise.all(arr))
 }
 
 export function allSettled(promises: KewPromise<any>[]) {

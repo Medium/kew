@@ -475,6 +475,16 @@ describe('kew', () => {
         expect(e.message).toEqual('failed')
       })
     })
+
+    it('should work if passed as variadic arguments', () => {
+      return Q.all(...promises).then(([a, b, c, d, e]) => {
+        expect(a).toEqual('foo')
+        expect(b).toEqual('bar')
+        expect(c).toEqual('baz')
+        expect(d).toEqual(12)
+        expect(e).toEqual(null)
+      })
+    })
   })
 
   describe('delay', () => {
@@ -669,7 +679,7 @@ describe('kew', () => {
     })
   })
 
-  // TODO:(mathieu/arthur): do a hatch post explaining this hell
+  // TODO:(mathieu/arthur): do a hatch post explaining this nightmare
   describe('loop hell', () => {
     // By order of priority in event loop:
     // - microtask (same as identity fn x => x() in this test)
