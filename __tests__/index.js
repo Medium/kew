@@ -722,6 +722,30 @@ describe('kew', () => {
       })
     }
   })
+
+  describe('isPromise', () => {
+    test('promise', () => {
+      const p = Q.resolve(12)
+      expect(Q.isPromise(p)).toBeTruthy()
+    })
+
+    test('deferred', () => {
+      const def = Q.defer()
+      expect(Q.isPromise(def)).toBeTruthy()
+    })
+  })
+
+  describe('isPromiseLike', () => {
+    test('promise', () => {
+      const p = Q.resolve(12)
+      expect(Q.isPromiseLike(p)).toBeTruthy()
+    })
+
+    test('deferred', () => {
+      const def = Q.defer()
+      expect(Q.isPromiseLike(def)).toBeTruthy()
+    })
+  })
 })
 
 /**

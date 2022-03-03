@@ -292,7 +292,7 @@ function buildNodeResolver<T>(deferred: KewDeferred<T>) {
 }
 
 export function isPromise(prom: any) {
-  return prom instanceof KewPromise
+  return prom instanceof KewPromise || prom instanceof KewDeferred
 }
 
 export function isPromiseLike(obj: any) {
