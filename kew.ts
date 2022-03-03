@@ -7,11 +7,8 @@ interface KewPromiseType<T> extends Promise<T> {
   failBound(onRejected: (...args: any[]) => any, thisObj: any, ...args: any[]): KewPromise<T>
 }
 
-type FulfilledCb<T, TResult> = ((value: T) => TResult | PromiseLike<TResult>) | undefined | null
-type RejectedCb<TResult = never> =
-  | ((reason: any) => TResult | PromiseLike<TResult>)
-  | undefined
-  | null
+type FulfilledCb<T, TResult> = (value: T) => TResult | PromiseLike<TResult>
+type RejectedCb<TResult = never> = (reason: any) => TResult | PromiseLike<TResult>
 
 let nextTickFunction: Function = process.nextTick
 
@@ -32,35 +29,69 @@ export class KewPromise<T> implements KewPromiseType<T> {
     return this
   }
 
+  private static identity(x: any) {
+    return x
+  }
+
+  private static throwErr(err: any): never {
+    throw err
+  }
+
   public then<TResult1 = T, TResult2 = never>(
-    onFulfilled?: FulfilledCb<T, TResult1>,
-    onRejected?: RejectedCb<TResult2>
+    onFulfilled: FulfilledCb<T, TResult1> = KewPromise.identity,
+    onRejected: RejectedCb<TResult2> = KewPromise.throwErr
   ): KewPromise<TResult1 | TResult2> {
-    return new KewPromise(this.nativePromise.then(onFulfilled, onRejected))
+    const prom = defer<TResult1 | TResult2>()
+    const nextTickOnFulfilled = (data: T) => {
+      nextTickFunction(() => {
+        let res: any
+        try {
+          res = onFulfilled(data)
+        } catch (err) {
+          prom.reject(err)
+        }
+        prom.resolve(res)
+      })
+    }
+
+    const nextTickOnRejected = (err: TResult2) => {
+      nextTickFunction(() => {
+        let res: any
+        try {
+          res = onRejected(err)
+        } catch (e) {
+          prom.reject(e)
+        }
+        prom.resolve(res)
+      })
+    }
+
+    this.nativePromise.then(nextTickOnFulfilled, nextTickOnRejected)
+    return prom.promise
   }
 
   public catch<TResult = never>(onRejected?: RejectedCb<TResult>): KewPromise<T | TResult> {
-    return new KewPromise(this.nativePromise.catch(onRejected))
+    return this.then(undefined, onRejected)
   }
 
   public fail<TResult = never>(onRejected?: RejectedCb<TResult>): KewPromise<T | TResult> {
-    return new KewPromise(this.nativePromise.catch(onRejected))
+    return this.catch(onRejected)
   }
 
-  public thenBound(onFulfilled: (...args: any[]) => any, thisObj: any, ...args: any[]) {
-    return new KewPromise(
-      this.nativePromise.then(data => {
-        return onFulfilled.apply(thisObj, [...args, data])
-      })
-    )
+  public thenBound<TResult>(
+    onFulfilled: (...args: any[]) => TResult,
+    thisObj: any,
+    ...args: any[]
+  ): KewPromise<TResult> {
+    return this.then(data => onFulfilled.apply(thisObj, [...args, data]))
   }
 
-  public failBound(onRejected: (...args: any[]) => any, thisObj: any, ...args: any[]) {
-    return new KewPromise(
-      this.nativePromise.catch(err => {
-        return onRejected.apply(thisObj, [...args, err])
-      })
-    )
+  public failBound(
+    onRejected: (...args: any[]) => any,
+    thisObj: any,
+    ...args: any[]
+  ): KewPromise<any> {
+    return this.catch(err => onRejected.apply(thisObj, [...args, err]))
   }
 
   // no-op, kept for backward-compatibility
@@ -75,13 +106,12 @@ export class KewPromise<T> implements KewPromiseType<T> {
 
   public finally(finalCallback: (() => void) | null): KewPromise<T> {
     const onFinally = (cb: any) => {
-      return finalCallback ? Promise.resolve(finalCallback()).then(cb) : cb
+      return finalCallback ? Promise.resolve(finalCallback()).then(cb) : cb()
     }
-    const promise = this.nativePromise.then(
+    return this.then(
       result => onFinally(() => result),
       reason => onFinally(() => Promise.reject(reason))
     )
-    return new KewPromise<T>(promise)
   }
 
   public fin = this.finally

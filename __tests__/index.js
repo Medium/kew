@@ -668,6 +668,50 @@ describe('kew', () => {
       })
     })
   })
+
+  // TODO:(mathieu/arthur): do a hatch post explaining this hell
+  describe('loop hell', () => {
+    // By order of priority in event loop:
+    // - microtask (same as identity fn x => x() in this test)
+    // - process.nextTick
+    // - setImmediate
+    const cases = [
+      ['nextTick ≤ nextTick', process.nextTick, process.nextTick, 'stopped'],
+      ['setImmediate ≤ setImmediate', setImmediate, setImmediate, 'stopped'],
+      ['setImmediate ≤ nextTick', setImmediate, process.nextTick, 'stopped'],
+      ['microTask ≥ nextTick', x => x(), process.nextTick, 'timeout'],
+      ['microTask ≥ setImmediate', x => x(), setImmediate, 'timeout'],
+      ['nextTick ≥ setImmediate', process.nextTick, setImmediate, 'timeout'],
+    ]
+
+    afterAll(() => {
+      Q.setNextTickFunction(process.nextTick)
+    })
+
+    for ([key, nextTickFn, stopFn, expected] of cases) {
+      test(key, () => {
+        Q.setNextTickFunction(nextTickFn)
+
+        let iterations = 0
+        let stopped = false
+
+        const run = function () {
+          if (iterations > 10) {
+            return 'timeout'
+          }
+          iterations++
+          if (stopped) return 'stopped'
+          return Q.resolve().then(run)
+        }
+
+        const prom = run()
+        stopFn(() => {
+          stopped = true
+        })
+        return prom.then(o => expect(o).toEqual(expected))
+      })
+    }
+  })
 })
 
 /**
